@@ -3,7 +3,7 @@ import Head from "next/head";
 import styles from "../styles/Home.module.css";
 import Ticket from "../components/Ticket";
 import Calendar from "../components/Calendar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const Home: NextPage = () => {
   // Données des tickets
@@ -24,6 +24,42 @@ const Home: NextPage = () => {
   
   // État pour la date actuelle
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  // Charger les données sauvegardées au démarrage
+  useEffect(() => {
+    // Charger les tickets disponibles
+    const savedTickets = localStorage.getItem('calendarTickets');
+    if (savedTickets) {
+      setTickets(JSON.parse(savedTickets));
+    }
+
+    // Charger les tickets déposés
+    const savedDroppedTickets = localStorage.getItem('calendarDroppedTickets');
+    if (savedDroppedTickets) {
+      setDroppedTickets(JSON.parse(savedDroppedTickets));
+    }
+
+    // Charger le prochain ID
+    const savedNextId = localStorage.getItem('calendarNextId');
+    if (savedNextId) {
+      setNextId(parseInt(savedNextId));
+    }
+  }, []); // [] signifie : exécute seulement au démarrage
+
+  // Sauvegarder les tickets quand ils changent
+  useEffect(() => {
+    localStorage.setItem('calendarTickets', JSON.stringify(tickets));
+  }, [tickets]);
+
+  // Sauvegarder les tickets déposés quand ils changent
+  useEffect(() => {
+    localStorage.setItem('calendarDroppedTickets', JSON.stringify(droppedTickets));
+  }, [droppedTickets]);
+
+  // Sauvegarder le prochain ID quand il change
+  useEffect(() => {
+    localStorage.setItem('calendarNextId', nextId.toString());
+  }, [nextId]);
 
   // Gérer le début du drag
   const handleDragStart = (e: React.DragEvent, ticketId: number) => {
