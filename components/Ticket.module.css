@@ -1,0 +1,41 @@
+.ticket {
+  padding: 15px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: grab;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.ticket:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.ticket:active {
+  cursor: grabbing;
+}
+
+.ticket[draggable="true"] {
+  cursor: grab;
+}
+
+.ticket[draggable="true"]:active {
+  cursor: grabbing;
+  opacity: 0.5;
+}
+
+.ticketNumber {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: rgba(0, 0, 0, 0.5);
+  margin-bottom: 4px;
+}
+
+.ticketTitle {
+  margin: 0;
+  font-size: 1rem;
+  color: #333;
+  font-weight: 500;
+}
