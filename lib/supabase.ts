@@ -5,6 +5,7 @@ export interface Ticket {
   id: number
   title: string
   color: string
+  technician?: string | null  // Nom du technicien assigné
   date: string | null  // Format: YYYY-MM-DD
   hour: number | null  // -1 pour toute la journée, 0-23 pour une heure spécifique
   created_at?: string

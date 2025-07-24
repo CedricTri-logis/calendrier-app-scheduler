@@ -129,6 +129,71 @@
   font-size: 0.9rem;
 }
 
+.technicianPicker {
+  margin-bottom: 1rem;
+}
+
+.technicianPicker label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #4a4a4a;
+}
+
+.technicianSelect {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background-color: white;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.technicianSelect:hover {
+  border-color: #b8d4e3;
+}
+
+.technicianSelect:focus {
+  outline: none;
+  border-color: #2c5282;
+  box-shadow: 0 0 0 2px rgba(44, 82, 130, 0.1);
+}
+
+.filterSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filterSection label {
+  font-weight: 500;
+  color: #4a4a4a;
+}
+
+.technicianFilter {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.technicianFilter:hover {
+  border-color: #b8d4e3;
+  background-color: #f8f8f8;
+}
+
+.technicianFilter:focus {
+  outline: none;
+  border-color: #2c5282;
+  box-shadow: 0 0 0 2px rgba(44, 82, 130, 0.1);
+}
+
 .addButton {
   width: 100%;
   padding: 0.6rem;

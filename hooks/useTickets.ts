@@ -27,11 +27,11 @@ export function useTickets() {
   }
 
   // Créer un nouveau ticket
-  const createTicket = async (title: string, color: string) => {
+  const createTicket = async (title: string, color: string, technician?: string) => {
     try {
       const { data, error } = await supabase
         .from('tickets')
-        .insert([{ title, color }])
+        .insert([{ title, color, technician: technician || null }])
         .select()
         .single()
 

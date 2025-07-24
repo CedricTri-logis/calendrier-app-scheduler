@@ -40,3 +40,13 @@
   color: #333;
   font-weight: 500;
 }
+
+.ticketTechnician {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 0.3rem;
+  font-style: italic;
+  padding: 0.2rem 0.4rem;
+  background-color: rgba(255, 255, 255, 0.6);
+  border-radius: 3px;
+}

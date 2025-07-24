@@ -91,6 +91,7 @@ const DayView: React.FC<DayViewProps> = ({
                       id={ticket.id}
                       title={ticket.title}
                       color={ticket.color}
+                      technician={ticket.technician}
                       onDragStart={onDragStart}
                     />
                   ))}
@@ -115,6 +116,7 @@ const DayView: React.FC<DayViewProps> = ({
                   id={ticket.id}
                   title={ticket.title}
                   color={ticket.color}
+                  technician={ticket.technician}
                   onDragStart={onDragStart}
                 />
               ))}

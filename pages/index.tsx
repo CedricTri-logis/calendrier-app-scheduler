@@ -8,6 +8,7 @@ import DayView from "../components/DayView";
 import { useState } from "react";
 import { useTickets } from "../hooks/useTickets";
 import { formatDateForDB } from "../utils/dateHelpers";
+import { TECHNICIANS } from "../data/technicians";
 
 const Home: NextPage = () => {
   // Hook Supabase pour gérer les tickets
@@ -16,18 +17,27 @@ const Home: NextPage = () => {
   // État pour le formulaire de nouveau ticket
   const [newTicketTitle, setNewTicketTitle] = useState("");
   const [newTicketColor, setNewTicketColor] = useState("#FFE5B4");
+  const [newTicketTechnician, setNewTicketTechnician] = useState("Non assigné");
   
   // État pour la date actuelle
   const [currentDate, setCurrentDate] = useState(new Date());
   
   // État pour la vue actuelle (mois, semaine, jour)
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
+  
+  // État pour le filtre technicien
+  const [selectedTechnician, setSelectedTechnician] = useState<string>("Tous");
 
+  // Filtrer les tickets selon le technicien sélectionné
+  const filteredTickets = selectedTechnician === "Tous" 
+    ? tickets 
+    : tickets.filter(ticket => ticket.technician === selectedTechnician);
+  
   // Filtrer les tickets pour obtenir ceux qui ne sont pas placés
-  const unplacedTickets = tickets.filter(ticket => !ticket.date);
+  const unplacedTickets = filteredTickets.filter(ticket => !ticket.date);
   
   // Organiser les tickets placés par date
-  const ticketsByDate = tickets.reduce((acc, ticket) => {
+  const ticketsByDate = filteredTickets.reduce((acc, ticket) => {
     if (ticket.date) {
       if (!acc[ticket.date]) {
         acc[ticket.date] = [];
@@ -74,7 +84,7 @@ const Home: NextPage = () => {
     
     if (newTicketTitle.trim() === "") return;
     
-    await createTicket(newTicketTitle, newTicketColor);
+    await createTicket(newTicketTitle, newTicketColor, newTicketTechnician);
     setNewTicketTitle("");
   };
 
@@ -201,6 +211,19 @@ const Home: NextPage = () => {
                 </div>
               </div>
               
+              <div className={styles.technicianPicker}>
+                <label>Technicien:</label>
+                <select 
+                  value={newTicketTechnician}
+                  onChange={(e) => setNewTicketTechnician(e.target.value)}
+                  className={styles.technicianSelect}
+                >
+                  {TECHNICIANS.map(tech => (
+                    <option key={tech} value={tech}>{tech}</option>
+                  ))}
+                </select>
+              </div>
+              
               <button type="submit" className={styles.addButton}>
                 Ajouter le ticket
               </button>
@@ -213,6 +236,7 @@ const Home: NextPage = () => {
                   id={ticket.id}
                   title={ticket.title}
                   color={ticket.color}
+                  technician={ticket.technician}
                   onDragStart={handleDragStart}
                 />
               ))}
@@ -222,6 +246,19 @@ const Home: NextPage = () => {
           <div className={styles.calendarColumn}>
             <div className={styles.calendarHeader}>
               <h2>Calendrier</h2>
+              <div className={styles.filterSection}>
+                <label>Filtrer par technicien:</label>
+                <select 
+                  value={selectedTechnician}
+                  onChange={(e) => setSelectedTechnician(e.target.value)}
+                  className={styles.technicianFilter}
+                >
+                  <option value="Tous">Tous les techniciens</option>
+                  {TECHNICIANS.map(tech => (
+                    <option key={tech} value={tech}>{tech}</option>
+                  ))}
+                </select>
+              </div>
               <div className={styles.viewButtons}>
                 <button 
                   className={`${styles.viewButton} ${viewMode === 'month' ? styles.activeView : ''}`}

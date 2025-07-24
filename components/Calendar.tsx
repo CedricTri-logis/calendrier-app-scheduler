@@ -119,6 +119,7 @@ const Calendar: React.FC<CalendarProps> = ({
                         id={ticket.id}
                         title={ticket.title}
                         color={ticket.color}
+                        technician={ticket.technician}
                         onDragStart={onDragStart}
                       />
                     ))}
