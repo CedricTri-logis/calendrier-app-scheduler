@@ -68,9 +68,11 @@ const Calendar: React.FC<CalendarProps> = ({
     }
   }
   
-  // Fonction pour créer une clé de date
+  // Fonction pour créer une clé de date au format YYYY-MM-DD
   const getDateKey = (year: number, month: number, day: number): string => {
-    return `${year}-${month + 1}-${day}`;
+    const monthStr = String(month + 1).padStart(2, '0');
+    const dayStr = String(day).padStart(2, '0');
+    return `${year}-${monthStr}-${dayStr}`;
   }
 
   return (

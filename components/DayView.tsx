@@ -43,9 +43,12 @@ const DayView: React.FC<DayViewProps> = ({
     }
   }
   
-  // Fonction pour créer une clé de date
+  // Fonction pour créer une clé de date au format YYYY-MM-DD
   const getDateKey = (): string => {
-    return `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${currentDate.getDate()}`;
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const day = String(currentDate.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
   
   const dayNumber = currentDate.getDate()

@@ -5,17 +5,25 @@ import Ticket from "../components/Ticket";
 import Calendar from "../components/Calendar";
 import WeekView from "../components/WeekView";
 import DayView from "../components/DayView";
-import { useState } from "react";
-import { useTickets } from "../hooks/useTickets";
-import { formatDateForDB } from "../utils/dateHelpers";
+import { useState, useEffect } from "react";
 
 const Home: NextPage = () => {
-  // Hook Supabase pour gérer les tickets
-  const { tickets, loading, error, createTicket, updateTicketPosition } = useTickets();
+  // Données des tickets
+  const [tickets, setTickets] = useState([
+    { id: 1, title: "Réunion équipe", color: "#FFE5B4" },
+    { id: 2, title: "Appel client", color: "#B4E5FF" },
+    { id: 3, title: "Révision projet", color: "#FFB4B4" },
+    { id: 4, title: "Nouveau ticket", color: "#D4FFB4" },
+  ]);
+
+  // État pour stocker les tickets déposés sur le calendrier (plusieurs par jour)
+  // Changé pour utiliser des clés string (date) au lieu de number (jour)
+  const [droppedTickets, setDroppedTickets] = useState<{ [key: string]: any[] }>({});
   
   // État pour le formulaire de nouveau ticket
   const [newTicketTitle, setNewTicketTitle] = useState("");
   const [newTicketColor, setNewTicketColor] = useState("#FFE5B4");
+  const [nextId, setNextId] = useState(5); // Commence à 5 car on a déjà 4 tickets
   
   // État pour la date actuelle
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -23,23 +31,65 @@ const Home: NextPage = () => {
   // État pour la vue actuelle (mois, semaine, jour)
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
 
-  // Filtrer les tickets pour obtenir ceux qui ne sont pas placés
-  const unplacedTickets = tickets.filter(ticket => !ticket.date);
-  
-  // Organiser les tickets placés par date
-  const ticketsByDate = tickets.reduce((acc, ticket) => {
-    if (ticket.date) {
-      if (!acc[ticket.date]) {
-        acc[ticket.date] = [];
-      }
-      acc[ticket.date].push(ticket);
+  // Fonction pour créer une clé unique basée sur la date complète
+  const getDateKey = (year: number, month: number, day: number): string => {
+    return `${year}-${month + 1}-${day}`;
+  };
+
+  // Fonction pour créer une clé à partir d'une Date
+  const getDateKeyFromDate = (date: Date): string => {
+    return getDateKey(date.getFullYear(), date.getMonth(), date.getDate());
+  };
+
+  // Charger les données sauvegardées au démarrage
+  useEffect(() => {
+    // Charger les tickets disponibles
+    const savedTickets = localStorage.getItem('calendarTickets');
+    if (savedTickets) {
+      setTickets(JSON.parse(savedTickets));
     }
-    return acc;
-  }, {} as { [key: string]: typeof tickets });
+
+    // Charger les tickets déposés
+    const savedDroppedTickets = localStorage.getItem('calendarDroppedTickets');
+    if (savedDroppedTickets) {
+      setDroppedTickets(JSON.parse(savedDroppedTickets));
+    }
+
+    // Charger le prochain ID
+    const savedNextId = localStorage.getItem('calendarNextId');
+    if (savedNextId) {
+      setNextId(parseInt(savedNextId));
+    }
+  }, []); // [] signifie : exécute seulement au démarrage
+
+  // Sauvegarder les tickets quand ils changent
+  useEffect(() => {
+    localStorage.setItem('calendarTickets', JSON.stringify(tickets));
+  }, [tickets]);
+
+  // Sauvegarder les tickets déposés quand ils changent
+  useEffect(() => {
+    localStorage.setItem('calendarDroppedTickets', JSON.stringify(droppedTickets));
+  }, [droppedTickets]);
+
+  // Sauvegarder le prochain ID quand il change
+  useEffect(() => {
+    localStorage.setItem('calendarNextId', nextId.toString());
+  }, [nextId]);
 
   // Gérer le début du drag
   const handleDragStart = (e: React.DragEvent, ticketId: number) => {
-    const ticket = tickets.find(t => t.id === ticketId);
+    // Chercher d'abord dans les tickets non placés
+    let ticket = tickets.find(t => t.id === ticketId);
+    
+    // Si pas trouvé, chercher dans les tickets déposés
+    if (!ticket) {
+      for (const dateTickets of Object.values(droppedTickets)) {
+        ticket = dateTickets.find(t => t.id === ticketId);
+        if (ticket) break;
+      }
+    }
+    
     if (ticket) {
       e.dataTransfer.setData('ticket', JSON.stringify(ticket));
       e.dataTransfer.effectAllowed = 'move';
@@ -53,28 +103,43 @@ const Home: NextPage = () => {
   };
 
   // Gérer le drop sur une date
-  const handleDrop = async (dayNumber: number, ticket: any, year?: number, month?: number) => {
-    // Créer la date
-    const dropDate = new Date(
-      year ?? currentDate.getFullYear(),
-      month ?? currentDate.getMonth(),
-      dayNumber
-    );
+  const handleDrop = (dayNumber: number, ticket: any, year?: number, month?: number) => {
+    // Créer la clé en fonction du contexte
+    let dateKey: string;
+    if (year !== undefined && month !== undefined) {
+      dateKey = getDateKey(year, month, dayNumber);
+    } else {
+      // Pour la compatibilité avec l'ancien système
+      dateKey = getDateKey(currentDate.getFullYear(), currentDate.getMonth(), dayNumber);
+    }
+
+    setDroppedTickets(prev => {
+      // Si la date a déjà des tickets, ajoute le nouveau
+      const existingTickets = prev[dateKey] || [];
+      return {
+        ...prev,
+        [dateKey]: [...existingTickets, ticket]
+      };
+    });
     
-    const dateString = formatDateForDB(dropDate);
-    const hour = ticket.hour ?? -1;
-    
-    // Mettre à jour dans Supabase
-    await updateTicketPosition(ticket.id, dateString, hour);
+    // Retirer le ticket de la liste originale
+    setTickets(prev => prev.filter(t => t.id !== ticket.id));
   };
 
   // Ajouter un nouveau ticket
-  const handleAddTicket = async (e: React.FormEvent) => {
+  const handleAddTicket = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (newTicketTitle.trim() === "") return;
     
-    await createTicket(newTicketTitle, newTicketColor);
+    const newTicket = {
+      id: nextId,
+      title: newTicketTitle,
+      color: newTicketColor
+    };
+    
+    setTickets(prev => [...prev, newTicket]);
+    setNextId(prev => prev + 1);
     setNewTicketTitle("");
   };
 
@@ -112,30 +177,6 @@ const Home: NextPage = () => {
     newDate.setDate(currentDate.getDate() + 1);
     setCurrentDate(newDate);
   };
-
-  if (loading) {
-    return (
-      <div className={styles.container}>
-        <main className={styles.main}>
-          <h1 className={styles.title}>Chargement...</h1>
-        </main>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className={styles.container}>
-        <main className={styles.main}>
-          <h1 className={styles.title}>Erreur</h1>
-          <p>{error}</p>
-          <p className={styles.error}>
-            Vérifiez que vous avez bien configuré vos clés Supabase dans .env.local
-          </p>
-        </main>
-      </div>
-    );
-  }
 
   return (
     <div className={styles.container}>
@@ -207,7 +248,7 @@ const Home: NextPage = () => {
             </form>
             
             <div className={styles.ticketsList}>
-              {unplacedTickets.map((ticket) => (
+              {tickets.map((ticket) => (
                 <Ticket
                   key={ticket.id}
                   id={ticket.id}
@@ -246,7 +287,7 @@ const Home: NextPage = () => {
             
             {viewMode === 'month' && (
               <Calendar 
-                droppedTickets={ticketsByDate}
+                droppedTickets={droppedTickets}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragStart={handleDragStart}
@@ -258,7 +299,7 @@ const Home: NextPage = () => {
             
             {viewMode === 'week' && (
               <WeekView 
-                droppedTickets={ticketsByDate}
+                droppedTickets={droppedTickets}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragStart={handleDragStart}
@@ -270,7 +311,7 @@ const Home: NextPage = () => {
             
             {viewMode === 'day' && (
               <DayView 
-                droppedTickets={ticketsByDate}
+                droppedTickets={droppedTickets}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragStart={handleDragStart}

@@ -120,6 +120,15 @@
   transform: scale(1.1);
 }
 
+.error {
+  color: #e53e3e;
+  background-color: #fed7d7;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
 .addButton {
   width: 100%;
   padding: 0.6rem;
