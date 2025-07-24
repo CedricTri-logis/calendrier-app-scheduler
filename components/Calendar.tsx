@@ -3,9 +3,10 @@ import styles from './Calendar.module.css'
 import Ticket from './Ticket'
 
 interface CalendarProps {
-  droppedTickets: { [key: number]: any[] }
-  onDrop: (dayNumber: number, ticket: any) => void
+  droppedTickets: { [key: string]: any[] }
+  onDrop: (dayNumber: number, ticket: any, year?: number, month?: number) => void
   onDragOver: (e: React.DragEvent) => void
+  onDragStart: (e: React.DragEvent, ticketId: number) => void
   currentDate: Date
   onPreviousMonth: () => void
   onNextMonth: () => void
@@ -15,6 +16,7 @@ const Calendar: React.FC<CalendarProps> = ({
   droppedTickets, 
   onDrop, 
   onDragOver,
+  onDragStart,
   currentDate,
   onPreviousMonth,
   onNextMonth
@@ -62,8 +64,13 @@ const Calendar: React.FC<CalendarProps> = ({
     const ticketData = e.dataTransfer.getData('ticket')
     if (ticketData) {
       const ticket = JSON.parse(ticketData)
-      onDrop(dayNumber, ticket)
+      onDrop(dayNumber, ticket, currentDate.getFullYear(), currentDate.getMonth())
     }
+  }
+  
+  // Fonction pour créer une clé de date
+  const getDateKey = (year: number, month: number, day: number): string => {
+    return `${year}-${month + 1}-${day}`;
   }
 
   return (
@@ -103,14 +110,16 @@ const Calendar: React.FC<CalendarProps> = ({
               <>
                 <div className={styles.dayNumber}>{dayNumber}</div>
                 <div className={styles.dayContent}>
-                  {droppedTickets[dayNumber] && droppedTickets[dayNumber].map((ticket) => (
-                    <Ticket
-                      key={ticket.id}
-                      id={ticket.id}
-                      title={ticket.title}
-                      color={ticket.color}
-                    />
-                  ))}
+                  {dayNumber && droppedTickets[getDateKey(currentDate.getFullYear(), currentDate.getMonth(), dayNumber)] && 
+                    droppedTickets[getDateKey(currentDate.getFullYear(), currentDate.getMonth(), dayNumber)].map((ticket) => (
+                      <Ticket
+                        key={ticket.id}
+                        id={ticket.id}
+                        title={ticket.title}
+                        color={ticket.color}
+                        onDragStart={onDragStart}
+                      />
+                    ))}
                 </div>
               </>
             )}

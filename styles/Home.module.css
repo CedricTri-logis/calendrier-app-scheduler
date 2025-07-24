@@ -114,6 +114,12 @@
   border-color: #333;
 }
 
+.selectedColor {
+  border: 3px solid #2c5282 !important;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px #2c5282;
+  transform: scale(1.1);
+}
+
 .addButton {
   width: 100%;
   padding: 0.6rem;

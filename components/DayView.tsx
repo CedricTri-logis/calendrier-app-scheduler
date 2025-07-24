@@ -3,9 +3,10 @@ import styles from './DayView.module.css'
 import Ticket from './Ticket'
 
 interface DayViewProps {
-  droppedTickets: { [key: number]: any[] }
-  onDrop: (dayNumber: number, ticket: any) => void
+  droppedTickets: { [key: string]: any[] }
+  onDrop: (dayNumber: number, ticket: any, year?: number, month?: number) => void
   onDragOver: (e: React.DragEvent) => void
+  onDragStart: (e: React.DragEvent, ticketId: number) => void
   currentDate: Date
   onPreviousDay: () => void
   onNextDay: () => void
@@ -15,6 +16,7 @@ const DayView: React.FC<DayViewProps> = ({
   droppedTickets,
   onDrop,
   onDragOver,
+  onDragStart,
   currentDate,
   onPreviousDay,
   onNextDay
@@ -37,12 +39,17 @@ const DayView: React.FC<DayViewProps> = ({
     if (ticketData) {
       const ticket = JSON.parse(ticketData)
       // On stocke toujours par jour, mais on pourrait ajouter l'heure au ticket
-      onDrop(currentDate.getDate(), { ...ticket, hour })
+      onDrop(currentDate.getDate(), { ...ticket, hour }, currentDate.getFullYear(), currentDate.getMonth())
     }
   }
   
+  // Fonction pour créer une clé de date
+  const getDateKey = (): string => {
+    return `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${currentDate.getDate()}`;
+  }
+  
   const dayNumber = currentDate.getDate()
-  const todayTickets = droppedTickets[dayNumber] || []
+  const todayTickets = droppedTickets[getDateKey()] || []
   
   return (
     <div className={styles.dayView}>
@@ -81,6 +88,7 @@ const DayView: React.FC<DayViewProps> = ({
                       id={ticket.id}
                       title={ticket.title}
                       color={ticket.color}
+                      onDragStart={onDragStart}
                     />
                   ))}
               </div>
@@ -104,6 +112,7 @@ const DayView: React.FC<DayViewProps> = ({
                   id={ticket.id}
                   title={ticket.title}
                   color={ticket.color}
+                  onDragStart={onDragStart}
                 />
               ))}
           </div>

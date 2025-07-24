@@ -17,7 +17,8 @@ const Home: NextPage = () => {
   ]);
 
   // État pour stocker les tickets déposés sur le calendrier (plusieurs par jour)
-  const [droppedTickets, setDroppedTickets] = useState<{ [key: number]: any[] }>({});
+  // Changé pour utiliser des clés string (date) au lieu de number (jour)
+  const [droppedTickets, setDroppedTickets] = useState<{ [key: string]: any[] }>({});
   
   // État pour le formulaire de nouveau ticket
   const [newTicketTitle, setNewTicketTitle] = useState("");
@@ -29,6 +30,16 @@ const Home: NextPage = () => {
   
   // État pour la vue actuelle (mois, semaine, jour)
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
+
+  // Fonction pour créer une clé unique basée sur la date complète
+  const getDateKey = (year: number, month: number, day: number): string => {
+    return `${year}-${month + 1}-${day}`;
+  };
+
+  // Fonction pour créer une clé à partir d'une Date
+  const getDateKeyFromDate = (date: Date): string => {
+    return getDateKey(date.getFullYear(), date.getMonth(), date.getDate());
+  };
 
   // Charger les données sauvegardées au démarrage
   useEffect(() => {
@@ -82,13 +93,22 @@ const Home: NextPage = () => {
   };
 
   // Gérer le drop sur une date
-  const handleDrop = (dayNumber: number, ticket: any) => {
+  const handleDrop = (dayNumber: number, ticket: any, year?: number, month?: number) => {
+    // Créer la clé en fonction du contexte
+    let dateKey: string;
+    if (year !== undefined && month !== undefined) {
+      dateKey = getDateKey(year, month, dayNumber);
+    } else {
+      // Pour la compatibilité avec l'ancien système
+      dateKey = getDateKey(currentDate.getFullYear(), currentDate.getMonth(), dayNumber);
+    }
+
     setDroppedTickets(prev => {
       // Si la date a déjà des tickets, ajoute le nouveau
-      const existingTickets = prev[dayNumber] || [];
+      const existingTickets = prev[dateKey] || [];
       return {
         ...prev,
-        [dayNumber]: [...existingTickets, ticket]
+        [dateKey]: [...existingTickets, ticket]
       };
     });
     
@@ -181,31 +201,31 @@ const Home: NextPage = () => {
                 <div className={styles.colorOptions}>
                   <button
                     type="button"
-                    className={styles.colorButton}
+                    className={`${styles.colorButton} ${newTicketColor === "#FFE5B4" ? styles.selectedColor : ""}`}
                     style={{ backgroundColor: "#FFE5B4" }}
                     onClick={() => setNewTicketColor("#FFE5B4")}
                   />
                   <button
                     type="button"
-                    className={styles.colorButton}
+                    className={`${styles.colorButton} ${newTicketColor === "#B4E5FF" ? styles.selectedColor : ""}`}
                     style={{ backgroundColor: "#B4E5FF" }}
                     onClick={() => setNewTicketColor("#B4E5FF")}
                   />
                   <button
                     type="button"
-                    className={styles.colorButton}
+                    className={`${styles.colorButton} ${newTicketColor === "#FFB4B4" ? styles.selectedColor : ""}`}
                     style={{ backgroundColor: "#FFB4B4" }}
                     onClick={() => setNewTicketColor("#FFB4B4")}
                   />
                   <button
                     type="button"
-                    className={styles.colorButton}
+                    className={`${styles.colorButton} ${newTicketColor === "#D4FFB4" ? styles.selectedColor : ""}`}
                     style={{ backgroundColor: "#D4FFB4" }}
                     onClick={() => setNewTicketColor("#D4FFB4")}
                   />
                   <button
                     type="button"
-                    className={styles.colorButton}
+                    className={`${styles.colorButton} ${newTicketColor === "#E5B4FF" ? styles.selectedColor : ""}`}
                     style={{ backgroundColor: "#E5B4FF" }}
                     onClick={() => setNewTicketColor("#E5B4FF")}
                   />
@@ -260,6 +280,7 @@ const Home: NextPage = () => {
                 droppedTickets={droppedTickets}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
+                onDragStart={handleDragStart}
                 currentDate={currentDate}
                 onPreviousMonth={goToPreviousMonth}
                 onNextMonth={goToNextMonth}
@@ -271,6 +292,7 @@ const Home: NextPage = () => {
                 droppedTickets={droppedTickets}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
+                onDragStart={handleDragStart}
                 currentDate={currentDate}
                 onPreviousWeek={goToPreviousWeek}
                 onNextWeek={goToNextWeek}
@@ -282,6 +304,7 @@ const Home: NextPage = () => {
                 droppedTickets={droppedTickets}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
+                onDragStart={handleDragStart}
                 currentDate={currentDate}
                 onPreviousDay={goToPreviousDay}
                 onNextDay={goToNextDay}

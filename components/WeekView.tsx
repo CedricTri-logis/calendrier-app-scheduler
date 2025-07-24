@@ -3,9 +3,10 @@ import styles from './WeekView.module.css'
 import Ticket from './Ticket'
 
 interface WeekViewProps {
-  droppedTickets: { [key: number]: any[] }
-  onDrop: (dayNumber: number, ticket: any) => void
+  droppedTickets: { [key: string]: any[] }
+  onDrop: (dayNumber: number, ticket: any, year?: number, month?: number) => void
   onDragOver: (e: React.DragEvent) => void
+  onDragStart: (e: React.DragEvent, ticketId: number) => void
   currentDate: Date
   onPreviousWeek: () => void
   onNextWeek: () => void
@@ -15,6 +16,7 @@ const WeekView: React.FC<WeekViewProps> = ({
   droppedTickets,
   onDrop,
   onDragOver,
+  onDragStart,
   currentDate,
   onPreviousWeek,
   onNextWeek
@@ -45,8 +47,13 @@ const WeekView: React.FC<WeekViewProps> = ({
     const ticketData = e.dataTransfer.getData('ticket')
     if (ticketData) {
       const ticket = JSON.parse(ticketData)
-      onDrop(date.getDate(), ticket)
+      onDrop(date.getDate(), ticket, date.getFullYear(), date.getMonth())
     }
+  }
+  
+  // Fonction pour créer une clé de date
+  const getDateKey = (date: Date): string => {
+    return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
   }
   
   // Formater la date pour l'affichage
@@ -88,12 +95,13 @@ const WeekView: React.FC<WeekViewProps> = ({
                 <div className={styles.dayNumber}>{dayNumber}</div>
               </div>
               <div className={styles.dayContent}>
-                {droppedTickets[dayNumber] && droppedTickets[dayNumber].map((ticket) => (
+                {droppedTickets[getDateKey(date)] && droppedTickets[getDateKey(date)].map((ticket) => (
                   <Ticket
                     key={ticket.id}
                     id={ticket.id}
                     title={ticket.title}
                     color={ticket.color}
+                    onDragStart={onDragStart}
                   />
                 ))}
               </div>
