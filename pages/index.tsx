@@ -3,6 +3,8 @@ import Head from "next/head";
 import styles from "../styles/Home.module.css";
 import Ticket from "../components/Ticket";
 import Calendar from "../components/Calendar";
+import WeekView from "../components/WeekView";
+import DayView from "../components/DayView";
 import { useState, useEffect } from "react";
 
 const Home: NextPage = () => {
@@ -14,8 +16,8 @@ const Home: NextPage = () => {
     { id: 4, title: "Nouveau ticket", color: "#D4FFB4" },
   ]);
 
-  // État pour stocker les tickets déposés sur le calendrier
-  const [droppedTickets, setDroppedTickets] = useState<{ [key: number]: any }>({});
+  // État pour stocker les tickets déposés sur le calendrier (plusieurs par jour)
+  const [droppedTickets, setDroppedTickets] = useState<{ [key: number]: any[] }>({});
   
   // État pour le formulaire de nouveau ticket
   const [newTicketTitle, setNewTicketTitle] = useState("");
@@ -24,6 +26,9 @@ const Home: NextPage = () => {
   
   // État pour la date actuelle
   const [currentDate, setCurrentDate] = useState(new Date());
+  
+  // État pour la vue actuelle (mois, semaine, jour)
+  const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
 
   // Charger les données sauvegardées au démarrage
   useEffect(() => {
@@ -78,10 +83,14 @@ const Home: NextPage = () => {
 
   // Gérer le drop sur une date
   const handleDrop = (dayNumber: number, ticket: any) => {
-    setDroppedTickets(prev => ({
-      ...prev,
-      [dayNumber]: ticket
-    }));
+    setDroppedTickets(prev => {
+      // Si la date a déjà des tickets, ajoute le nouveau
+      const existingTickets = prev[dayNumber] || [];
+      return {
+        ...prev,
+        [dayNumber]: [...existingTickets, ticket]
+      };
+    });
     
     // Retirer le ticket de la liste originale
     setTickets(prev => prev.filter(t => t.id !== ticket.id));
@@ -111,6 +120,32 @@ const Home: NextPage = () => {
 
   const goToNextMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
+  };
+
+  // Navigation entre les semaines
+  const goToPreviousWeek = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(currentDate.getDate() - 7);
+    setCurrentDate(newDate);
+  };
+
+  const goToNextWeek = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(currentDate.getDate() + 7);
+    setCurrentDate(newDate);
+  };
+
+  // Navigation entre les jours
+  const goToPreviousDay = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(currentDate.getDate() - 1);
+    setCurrentDate(newDate);
+  };
+
+  const goToNextDay = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(currentDate.getDate() + 1);
+    setCurrentDate(newDate);
   };
 
   return (
@@ -196,15 +231,62 @@ const Home: NextPage = () => {
           </div>
 
           <div className={styles.calendarColumn}>
-            <h2>Calendrier</h2>
-            <Calendar 
-              droppedTickets={droppedTickets}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              currentDate={currentDate}
-              onPreviousMonth={goToPreviousMonth}
-              onNextMonth={goToNextMonth}
-            />
+            <div className={styles.calendarHeader}>
+              <h2>Calendrier</h2>
+              <div className={styles.viewButtons}>
+                <button 
+                  className={`${styles.viewButton} ${viewMode === 'month' ? styles.activeView : ''}`}
+                  onClick={() => setViewMode('month')}
+                >
+                  Mois
+                </button>
+                <button 
+                  className={`${styles.viewButton} ${viewMode === 'week' ? styles.activeView : ''}`}
+                  onClick={() => setViewMode('week')}
+                >
+                  Semaine
+                </button>
+                <button 
+                  className={`${styles.viewButton} ${viewMode === 'day' ? styles.activeView : ''}`}
+                  onClick={() => setViewMode('day')}
+                >
+                  Jour
+                </button>
+              </div>
+            </div>
+            
+            {viewMode === 'month' && (
+              <Calendar 
+                droppedTickets={droppedTickets}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                currentDate={currentDate}
+                onPreviousMonth={goToPreviousMonth}
+                onNextMonth={goToNextMonth}
+              />
+            )}
+            
+            {viewMode === 'week' && (
+              <WeekView 
+                droppedTickets={droppedTickets}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                currentDate={currentDate}
+                onPreviousWeek={goToPreviousWeek}
+                onNextWeek={goToNextWeek}
+              />
+            )}
+            
+            {viewMode === 'day' && (
+              <DayView 
+                droppedTickets={droppedTickets}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                currentDate={currentDate}
+                onPreviousDay={goToPreviousDay}
+                onNextDay={goToNextDay}
+              />
+            )}
           </div>
         </div>
       </main>

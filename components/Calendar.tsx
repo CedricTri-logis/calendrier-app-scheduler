@@ -3,7 +3,7 @@ import styles from './Calendar.module.css'
 import Ticket from './Ticket'
 
 interface CalendarProps {
-  droppedTickets: { [key: number]: any }
+  droppedTickets: { [key: number]: any[] }
   onDrop: (dayNumber: number, ticket: any) => void
   onDragOver: (e: React.DragEvent) => void
   currentDate: Date
@@ -103,13 +103,14 @@ const Calendar: React.FC<CalendarProps> = ({
               <>
                 <div className={styles.dayNumber}>{dayNumber}</div>
                 <div className={styles.dayContent}>
-                  {droppedTickets[dayNumber] && (
+                  {droppedTickets[dayNumber] && droppedTickets[dayNumber].map((ticket) => (
                     <Ticket
-                      id={droppedTickets[dayNumber].id}
-                      title={droppedTickets[dayNumber].title}
-                      color={droppedTickets[dayNumber].color}
+                      key={ticket.id}
+                      id={ticket.id}
+                      title={ticket.title}
+                      color={ticket.color}
                     />
-                  )}
+                  ))}
                 </div>
               </>
             )}

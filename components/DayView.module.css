@@ -1,0 +1,121 @@
+.dayView {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.dayHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+}
+
+.dayTitle {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #2c5282;
+  font-weight: 600;
+}
+
+.navButton {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #4a4a4a;
+}
+
+.navButton:hover {
+  background-color: #e8f4f8;
+  border-color: #b8d4e3;
+}
+
+.hoursContainer {
+  flex: 1;
+  overflow-y: auto;
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.allDaySection {
+  display: flex;
+  border-bottom: 2px solid #e0e0e0;
+  background-color: #f8f8f8;
+}
+
+.allDayLabel {
+  width: 80px;
+  padding: 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #555;
+  text-align: right;
+  border-right: 1px solid #e0e0e0;
+}
+
+.allDayContent {
+  flex: 1;
+  padding: 1rem;
+  min-height: 60px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.hoursGrid {
+  display: flex;
+  flex-direction: column;
+}
+
+.hourRow {
+  display: flex;
+  min-height: 60px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.hourRow:hover {
+  background-color: #fafafa;
+}
+
+.hourLabel {
+  width: 80px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  color: #666;
+  text-align: right;
+  border-right: 1px solid #e0e0e0;
+  font-weight: 500;
+}
+
+.hourContent {
+  flex: 1;
+  padding: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+  min-height: 60px;
+  transition: background-color 0.2s ease;
+}
+
+.hourContent:hover {
+  background-color: #f5f9fd;
+}
+
+/* Style spécial pour les tickets dans la vue jour */
+.hourContent .ticket,
+.allDayContent .ticket {
+  margin-bottom: 0;
+  flex: 0 1 auto;
+  max-width: 200px;
+}

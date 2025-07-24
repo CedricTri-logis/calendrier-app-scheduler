@@ -130,3 +130,51 @@
 .addButton:hover {
   background-color: #357abd;
 }
+
+.calendarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.viewButtons {
+  display: flex;
+  gap: 4px;
+  background-color: #f0f0f0;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.viewButton {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  color: #666;
+}
+
+.viewButton:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.activeView {
+  background-color: white;
+  color: #2c5282;
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.viewPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+  color: #666;
+  font-size: 1.2rem;
+}

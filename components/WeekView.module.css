@@ -1,0 +1,99 @@
+.weekView {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.weekHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+}
+
+.weekTitle {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #2c5282;
+  font-weight: 600;
+}
+
+.navButton {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #4a4a4a;
+}
+
+.navButton:hover {
+  background-color: #e8f4f8;
+  border-color: #b8d4e3;
+}
+
+.weekGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  flex: 1;
+  height: calc(100vh - 300px);
+}
+
+.dayColumn {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dayColumn.today {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.dayHeader {
+  background-color: #f8f8f8;
+  padding: 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  text-align: center;
+}
+
+.dayName {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 0.25rem;
+}
+
+.dayNumber {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.today .dayHeader {
+  background-color: #e8f4f8;
+}
+
+.today .dayNumber {
+  color: #2c5282;
+}
+
+.dayContent {
+  padding: 0.5rem;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

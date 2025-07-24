@@ -94,6 +94,11 @@
 .dayContent {
   /* Zone où on pourra déposer les tickets */
   min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  max-height: 120px;
 }
 
 .emptyCell {
