@@ -194,6 +194,45 @@
   box-shadow: 0 0 0 2px rgba(44, 82, 130, 0.1);
 }
 
+.removeDropZone {
+  margin: 1.5rem 0;
+  padding: 2rem;
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  background-color: #f8f8f8;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.removeDropZone:hover {
+  border-color: #ff6b6b;
+  background-color: #fff5f5;
+}
+
+.removeDropZone.dragOver {
+  border-color: #ff4757;
+  background-color: #ffe0e0;
+  transform: scale(1.02);
+}
+
+.removeIcon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.removeDropZone:hover .removeIcon {
+  opacity: 1;
+}
+
+.removeDropZone p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
 .addButton {
   width: 100%;
   padding: 0.6rem;

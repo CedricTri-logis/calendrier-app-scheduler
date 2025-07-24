@@ -69,6 +69,30 @@ export function useTickets() {
     }
   }
 
+  // Retirer un ticket du calendrier (le remettre dans la liste non planifiée)
+  const removeTicketFromCalendar = async (id: number) => {
+    try {
+      const { error } = await supabase
+        .from('tickets')
+        .update({ date: null, hour: -1 })
+        .eq('id', id)
+
+      if (error) throw error
+
+      // Mettre à jour l'état local
+      setTickets(prev => 
+        prev.map(ticket => 
+          ticket.id === id ? { ...ticket, date: null, hour: -1 } : ticket
+        )
+      )
+
+      return true
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors du retrait du ticket')
+      return false
+    }
+  }
+
   // Supprimer un ticket
   const deleteTicket = async (id: number) => {
     try {
@@ -114,6 +138,7 @@ export function useTickets() {
     error,
     createTicket,
     updateTicketPosition,
+    removeTicketFromCalendar,
     deleteTicket,
     refetch: fetchTickets
   }

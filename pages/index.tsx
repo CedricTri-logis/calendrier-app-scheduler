@@ -12,7 +12,7 @@ import { TECHNICIANS } from "../data/technicians";
 
 const Home: NextPage = () => {
   // Hook Supabase pour gérer les tickets
-  const { tickets, loading, error, createTicket, updateTicketPosition } = useTickets();
+  const { tickets, loading, error, createTicket, updateTicketPosition, removeTicketFromCalendar } = useTickets();
   
   // État pour le formulaire de nouveau ticket
   const [newTicketTitle, setNewTicketTitle] = useState("");
@@ -27,6 +27,9 @@ const Home: NextPage = () => {
   
   // État pour le filtre technicien
   const [selectedTechnician, setSelectedTechnician] = useState<string>("Tous");
+  
+  // État pour le survol de la zone de retrait
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   // Filtrer les tickets selon le technicien sélectionné
   const filteredTickets = selectedTechnician === "Tous" 
@@ -86,6 +89,16 @@ const Home: NextPage = () => {
     
     await createTicket(newTicketTitle, newTicketColor, newTicketTechnician);
     setNewTicketTitle("");
+  };
+
+  // Gérer le retrait d'un ticket du calendrier
+  const handleRemoveTicket = async (e: React.DragEvent) => {
+    e.preventDefault();
+    const ticketData = e.dataTransfer.getData('ticket');
+    if (ticketData) {
+      const ticket = JSON.parse(ticketData);
+      await removeTicketFromCalendar(ticket.id);
+    }
   };
 
   // Navigation entre les mois
@@ -228,6 +241,23 @@ const Home: NextPage = () => {
                 Ajouter le ticket
               </button>
             </form>
+            
+            {/* Zone de dépôt pour retirer les tickets du calendrier */}
+            <div 
+              className={`${styles.removeDropZone} ${isDraggingOver ? styles.dragOver : ''}`}
+              onDrop={(e) => {
+                handleRemoveTicket(e);
+                setIsDraggingOver(false);
+              }}
+              onDragOver={(e) => {
+                handleDragOver(e);
+                setIsDraggingOver(true);
+              }}
+              onDragLeave={() => setIsDraggingOver(false)}
+            >
+              <div className={styles.removeIcon}>📥</div>
+              <p>Glissez ici pour retirer du calendrier</p>
+            </div>
             
             <div className={styles.ticketsList}>
               {unplacedTickets.map((ticket) => (
