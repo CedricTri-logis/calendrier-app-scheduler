@@ -79,7 +79,17 @@ const Home: NextPage = () => {
 
   // Gérer le début du drag
   const handleDragStart = (e: React.DragEvent, ticketId: number) => {
-    const ticket = tickets.find(t => t.id === ticketId);
+    // Chercher d'abord dans les tickets non placés
+    let ticket = tickets.find(t => t.id === ticketId);
+    
+    // Si pas trouvé, chercher dans les tickets déposés
+    if (!ticket) {
+      for (const dateTickets of Object.values(droppedTickets)) {
+        ticket = dateTickets.find(t => t.id === ticketId);
+        if (ticket) break;
+      }
+    }
+    
     if (ticket) {
       e.dataTransfer.setData('ticket', JSON.stringify(ticket));
       e.dataTransfer.effectAllowed = 'move';
