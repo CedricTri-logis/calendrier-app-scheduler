@@ -45,12 +45,20 @@ export function useTickets() {
     }
   }
 
-  // Mettre à jour la position d'un ticket
-  const updateTicketPosition = async (id: number, date: string | null, hour: number = -1) => {
+  // Mettre à jour la position d'un ticket (et optionnellement le technicien)
+  const updateTicketPosition = async (id: number, date: string | null, hour: number = -1, technician?: string) => {
     try {
+      // Préparer les données à mettre à jour
+      const updateData: any = { date, hour }
+      
+      // Si un technicien est fourni, l'inclure dans la mise à jour
+      if (technician !== undefined) {
+        updateData.technician = technician
+      }
+      
       const { error } = await supabase
         .from('tickets')
-        .update({ date, hour })
+        .update(updateData)
         .eq('id', id)
 
       if (error) throw error
@@ -58,7 +66,9 @@ export function useTickets() {
       // Mettre à jour l'état local
       setTickets(prev => 
         prev.map(ticket => 
-          ticket.id === id ? { ...ticket, date, hour } : ticket
+          ticket.id === id 
+            ? { ...ticket, ...updateData } 
+            : ticket
         )
       )
 

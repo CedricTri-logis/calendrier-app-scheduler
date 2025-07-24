@@ -77,8 +77,12 @@ const Home: NextPage = () => {
     const dateString = formatDateForDB(dropDate);
     const hour = ticket.hour ?? -1;
     
-    // Mettre à jour dans Supabase
-    await updateTicketPosition(ticket.id, dateString, hour);
+    // Si un technicien est sélectionné et que ce n'est pas "Tous", 
+    // assigner automatiquement le ticket à ce technicien
+    const technicianToAssign = selectedTechnician !== "Tous" ? selectedTechnician : ticket.technician;
+    
+    // Mettre à jour dans Supabase avec le technicien
+    await updateTicketPosition(ticket.id, dateString, hour, technicianToAssign);
   };
 
   // Ajouter un nouveau ticket
