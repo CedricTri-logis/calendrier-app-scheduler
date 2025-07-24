@@ -31,16 +31,16 @@ const Home: NextPage = () => {
   // État pour le survol de la zone de retrait
   const [isDraggingOver, setIsDraggingOver] = useState(false);
 
-  // Filtrer les tickets selon le technicien sélectionné
-  const filteredTickets = selectedTechnician === "Tous" 
+  // Filtrer les tickets pour obtenir ceux qui ne sont pas placés (sans filtre)
+  const unplacedTickets = tickets.filter(ticket => !ticket.date);
+  
+  // Filtrer les tickets selon le technicien sélectionné (pour le calendrier uniquement)
+  const filteredTicketsForCalendar = selectedTechnician === "Tous" 
     ? tickets 
     : tickets.filter(ticket => ticket.technician === selectedTechnician);
   
-  // Filtrer les tickets pour obtenir ceux qui ne sont pas placés
-  const unplacedTickets = filteredTickets.filter(ticket => !ticket.date);
-  
-  // Organiser les tickets placés par date
-  const ticketsByDate = filteredTickets.reduce((acc, ticket) => {
+  // Organiser les tickets placés par date (avec filtre)
+  const ticketsByDate = filteredTicketsForCalendar.reduce((acc, ticket) => {
     if (ticket.date) {
       if (!acc[ticket.date]) {
         acc[ticket.date] = [];
