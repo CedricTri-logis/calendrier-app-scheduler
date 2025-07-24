@@ -1,0 +1,272 @@
+/* Modern Week View Component */
+
+.weekView {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-primary);
+  overflow: hidden;
+}
+
+/* Header */
+.header {
+  display: flex;
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-light);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.timeGutter {
+  width: 80px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-light);
+}
+
+.dayHeader {
+  flex: 1;
+  padding: var(--spacing-md);
+  text-align: center;
+  border-right: 1px solid var(--border-light);
+  background-color: var(--bg-primary);
+  transition: background-color var(--transition-fast);
+}
+
+.dayHeader:last-child {
+  border-right: none;
+}
+
+.dayHeader.today {
+  background-color: var(--primary-blue-light);
+}
+
+.dayName {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.dayNumber {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.dayHeader.today .dayNumber {
+  color: var(--primary-blue);
+  background-color: var(--primary-blue);
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+/* All Day Row */
+.allDayRow {
+  display: flex;
+  background-color: var(--bg-secondary);
+  border-bottom: 2px solid var(--border-color);
+  min-height: 60px;
+}
+
+.allDayLabel {
+  width: 80px;
+  flex-shrink: 0;
+  padding: var(--spacing-sm);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: right;
+  border-right: 1px solid var(--border-light);
+}
+
+.allDayCell {
+  flex: 1;
+  padding: var(--spacing-sm);
+  border-right: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 40px;
+}
+
+.allDayCell:last-child {
+  border-right: none;
+}
+
+/* Time Grid */
+.timeGrid {
+  flex: 1;
+  display: flex;
+  overflow-y: auto;
+  position: relative;
+  background-color: var(--bg-primary);
+}
+
+/* Time Column */
+.timeColumn {
+  width: 80px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-light);
+}
+
+.timeSlot {
+  height: 60px;
+  border-bottom: 1px solid var(--border-light);
+  position: relative;
+}
+
+.timeLabel {
+  position: absolute;
+  top: -8px;
+  right: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background-color: var(--bg-primary);
+  padding: 0 4px;
+}
+
+/* Day Columns */
+.dayColumn {
+  flex: 1;
+  border-right: 1px solid var(--border-light);
+  position: relative;
+}
+
+.dayColumn:last-child {
+  border-right: none;
+}
+
+.dayColumn.todayColumn {
+  background-color: rgba(26, 115, 232, 0.04);
+}
+
+.hourCell {
+  height: 60px;
+  border-bottom: 1px solid var(--border-light);
+  padding: 2px 4px;
+  position: relative;
+  transition: background-color var(--transition-fast);
+}
+
+.hourCell:hover {
+  background-color: var(--bg-hover);
+}
+
+/* Event Wrapper */
+.eventWrapper {
+  margin-bottom: 2px;
+}
+
+/* Current Time Line */
+.currentTimeLine {
+  position: absolute;
+  left: 80px;
+  right: 0;
+  height: 2px;
+  background-color: var(--primary-blue);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.currentTimeIndicator {
+  position: absolute;
+  left: -6px;
+  top: -5px;
+  width: 12px;
+  height: 12px;
+  background-color: var(--primary-blue);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 0 3px var(--primary-blue-light);
+}
+
+/* Scrollbar */
+.timeGrid::-webkit-scrollbar {
+  width: 12px;
+}
+
+.timeGrid::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.timeGrid::-webkit-scrollbar-thumb {
+  background: var(--gray-400);
+  border-radius: var(--radius-md);
+  border: 2px solid var(--bg-secondary);
+}
+
+.timeGrid::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-500);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .timeGutter,
+  .allDayLabel,
+  .timeColumn {
+    width: 60px;
+  }
+  
+  .timeLabel {
+    font-size: 11px;
+  }
+  
+  .dayName {
+    font-size: 11px;
+  }
+  
+  .dayNumber {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    position: relative;
+  }
+  
+  .allDayRow {
+    display: none;
+  }
+  
+  .dayHeader {
+    padding: var(--spacing-sm);
+  }
+  
+  .dayName {
+    display: none;
+  }
+  
+  .dayNumber {
+    font-size: 16px;
+  }
+  
+  .hourCell {
+    height: 40px;
+  }
+  
+  .timeSlot {
+    height: 40px;
+  }
+}
+
+/* Animations */
+.weekView {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

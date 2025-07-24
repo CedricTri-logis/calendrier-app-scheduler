@@ -1,9 +1,14 @@
+@import './modern-theme.css';
+
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  font-family: var(--font-sans);
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  overflow: hidden;
+  height: 100vh;
 }
 
 a {
@@ -15,13 +20,24 @@ a {
   box-sizing: border-box;
 }
 
-main {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
 }
 
-h1 {
-  color: #333;
-  margin-bottom: 1rem;
+/* Focus Styles */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary-blue);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Selection */
+::selection {
+  background-color: var(--primary-blue-light);
+  color: var(--primary-blue);
 }

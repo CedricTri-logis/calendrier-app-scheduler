@@ -1,0 +1,408 @@
+/* Modern Home Layout */
+
+.container {
+  min-height: 100vh;
+  background-color: var(--bg-secondary);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+}
+
+.main {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Modern Header */
+.header {
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-light);
+  padding: var(--spacing-md) var(--spacing-xl);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  position: relative;
+  z-index: var(--z-sticky);
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.logoIcon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--primary-blue) 0%, #4285f4 100%);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: white;
+}
+
+/* Modern Sidebar */
+.sidebar {
+  width: 300px;
+  background-color: var(--bg-primary);
+  border-right: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width var(--transition-base);
+}
+
+.sidebarHeader {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.sidebarTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+/* Add Ticket Form */
+.addTicketForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Color Picker */
+.colorPicker {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.colorButton {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.colorButton:hover {
+  transform: scale(1.1);
+}
+
+.colorButton.selected {
+  border-color: var(--gray-800);
+}
+
+.colorButton.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--gray-800);
+  font-weight: bold;
+}
+
+/* Remove Drop Zone */
+.removeDropZone {
+  margin: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  transition: all var(--transition-base);
+  background-color: var(--bg-secondary);
+  cursor: pointer;
+}
+
+.removeDropZone:hover {
+  border-color: var(--primary-blue);
+  background-color: var(--primary-blue-light);
+}
+
+.removeDropZone.dragOver {
+  border-color: var(--primary-blue);
+  background-color: var(--primary-blue-light);
+  transform: scale(1.02);
+}
+
+.removeIcon {
+  font-size: 32px;
+  margin-bottom: var(--spacing-sm);
+  opacity: 0.6;
+}
+
+.removeText {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* Tickets List */
+.ticketsList {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+/* Calendar Area */
+.calendarArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Calendar Controls */
+.calendarControls {
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-light);
+  padding: var(--spacing-md) var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  min-height: 64px;
+}
+
+.navigationGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.navigationTitle {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-primary);
+  min-width: 200px;
+  text-align: center;
+}
+
+.navButton {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  border: none;
+  background-color: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  font-size: 18px;
+}
+
+.navButton:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.navButton:active {
+  background-color: var(--bg-active);
+}
+
+.todayButton {
+  padding: 8px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.todayButton:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--border-dark);
+}
+
+/* View Controls */
+.viewControls {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.viewButtonGroup {
+  display: flex;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  gap: 2px;
+}
+
+.viewButton {
+  padding: 8px 16px;
+  border: none;
+  background-color: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.viewButton:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-hover);
+}
+
+.viewButton.active {
+  background-color: var(--bg-primary);
+  color: var(--primary-blue);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Filter Section */
+.filterSection {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.filterLabel {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.technicianFilter {
+  min-width: 180px;
+}
+
+/* Calendar Content */
+.calendarContent {
+  flex: 1;
+  background-color: var(--bg-primary);
+  overflow: auto;
+  position: relative;
+}
+
+/* Error State */
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+  padding: var(--spacing-xl);
+}
+
+.errorTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.errorMessage {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-lg);
+  max-width: 500px;
+}
+
+.errorHint {
+  font-size: 14px;
+  color: var(--text-disabled);
+  background-color: var(--bg-secondary);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-family: monospace;
+}
+
+/* Loading State */
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--border-light);
+  border-top-color: var(--primary-blue);
+  border-radius: var(--radius-full);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loadingText {
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border-light);
+  }
+  
+  .calendarControls {
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+  
+  .navigationGroup {
+    order: 1;
+    width: 100%;
+  }
+  
+  .viewControls {
+    order: 2;
+  }
+  
+  .filterSection {
+    order: 3;
+    width: 100%;
+  }
+}

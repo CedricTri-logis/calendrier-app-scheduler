@@ -1,69 +1,69 @@
-import type { NextPage } from "next";
-import Head from "next/head";
-import styles from "../styles/Home.module.css";
-import Ticket from "../components/Ticket";
-import Calendar from "../components/Calendar";
-import WeekView from "../components/WeekView";
-import DayView from "../components/DayView";
-import { useState } from "react";
-import { useTickets } from "../hooks/useTickets";
-import { formatDateForDB } from "../utils/dateHelpers";
-import { TECHNICIANS } from "../data/technicians";
+import type { NextPage } from "next"
+import Head from "next/head"
+import styles from "../styles/ModernHome.module.css"
+import ModernTicket from "../components/ModernTicket"
+import ModernCalendar from "../components/ModernCalendar"
+import ModernWeekView from "../components/ModernWeekView"
+import ModernDayView from "../components/ModernDayView"
+import { useState } from "react"
+import { useTickets } from "../hooks/useTickets"
+import { formatDateForDB } from "../utils/dateHelpers"
+import { TECHNICIANS } from "../data/technicians"
 
-const Home: NextPage = () => {
+const ModernHome: NextPage = () => {
   // Hook Supabase pour gérer les tickets
-  const { tickets, loading, error, createTicket, updateTicketPosition, removeTicketFromCalendar } = useTickets();
+  const { tickets, loading, error, createTicket, updateTicketPosition, removeTicketFromCalendar } = useTickets()
   
   // État pour le formulaire de nouveau ticket
-  const [newTicketTitle, setNewTicketTitle] = useState("");
-  const [newTicketColor, setNewTicketColor] = useState("#FFE5B4");
-  const [newTicketTechnician, setNewTicketTechnician] = useState("Non assigné");
+  const [newTicketTitle, setNewTicketTitle] = useState("")
+  const [newTicketColor, setNewTicketColor] = useState("#fff3cd")
+  const [newTicketTechnician, setNewTicketTechnician] = useState("Non assigné")
   
   // État pour la date actuelle
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date())
   
   // État pour la vue actuelle (mois, semaine, jour)
-  const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
+  const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month')
   
   // État pour le filtre technicien
-  const [selectedTechnician, setSelectedTechnician] = useState<string>("Tous");
+  const [selectedTechnician, setSelectedTechnician] = useState<string>("Tous")
   
   // État pour le survol de la zone de retrait
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [isDraggingOver, setIsDraggingOver] = useState(false)
 
   // Filtrer les tickets pour obtenir ceux qui ne sont pas placés (sans filtre)
-  const unplacedTickets = tickets.filter(ticket => !ticket.date);
+  const unplacedTickets = tickets.filter(ticket => !ticket.date)
   
   // Filtrer les tickets selon le technicien sélectionné (pour le calendrier uniquement)
   const filteredTicketsForCalendar = selectedTechnician === "Tous" 
     ? tickets 
-    : tickets.filter(ticket => ticket.technician === selectedTechnician);
+    : tickets.filter(ticket => ticket.technician === selectedTechnician)
   
   // Organiser les tickets placés par date (avec filtre)
   const ticketsByDate = filteredTicketsForCalendar.reduce((acc, ticket) => {
     if (ticket.date) {
       if (!acc[ticket.date]) {
-        acc[ticket.date] = [];
+        acc[ticket.date] = []
       }
-      acc[ticket.date].push(ticket);
+      acc[ticket.date].push(ticket)
     }
-    return acc;
-  }, {} as { [key: string]: typeof tickets });
+    return acc
+  }, {} as { [key: string]: typeof tickets })
 
   // Gérer le début du drag
   const handleDragStart = (e: React.DragEvent, ticketId: number) => {
-    const ticket = tickets.find(t => t.id === ticketId);
+    const ticket = tickets.find(t => t.id === ticketId)
     if (ticket) {
-      e.dataTransfer.setData('ticket', JSON.stringify(ticket));
-      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('ticket', JSON.stringify(ticket))
+      e.dataTransfer.effectAllowed = 'move'
     }
-  };
+  }
 
   // Permettre le drop
   const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  };
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
 
   // Gérer le drop sur une date
   const handleDrop = async (dayNumber: number, ticket: any, year?: number, month?: number) => {
@@ -72,168 +72,192 @@ const Home: NextPage = () => {
       year ?? currentDate.getFullYear(),
       month ?? currentDate.getMonth(),
       dayNumber
-    );
+    )
     
-    const dateString = formatDateForDB(dropDate);
-    const hour = ticket.hour ?? -1;
+    const dateString = formatDateForDB(dropDate)
+    const hour = ticket.hour ?? -1
     
     // Si un technicien est sélectionné et que ce n'est pas "Tous", 
     // assigner automatiquement le ticket à ce technicien
-    const technicianToAssign = selectedTechnician !== "Tous" ? selectedTechnician : ticket.technician;
+    const technicianToAssign = selectedTechnician !== "Tous" ? selectedTechnician : ticket.technician
     
     // Mettre à jour dans Supabase avec le technicien
-    await updateTicketPosition(ticket.id, dateString, hour, technicianToAssign);
-  };
+    await updateTicketPosition(ticket.id, dateString, hour, technicianToAssign)
+  }
 
   // Ajouter un nouveau ticket
   const handleAddTicket = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     
-    if (newTicketTitle.trim() === "") return;
+    if (newTicketTitle.trim() === "") return
     
-    await createTicket(newTicketTitle, newTicketColor, newTicketTechnician);
-    setNewTicketTitle("");
-  };
+    await createTicket(newTicketTitle, newTicketColor, newTicketTechnician)
+    setNewTicketTitle("")
+  }
 
   // Gérer le retrait d'un ticket du calendrier
   const handleRemoveTicket = async (e: React.DragEvent) => {
-    e.preventDefault();
-    const ticketData = e.dataTransfer.getData('ticket');
+    e.preventDefault()
+    const ticketData = e.dataTransfer.getData('ticket')
     if (ticketData) {
-      const ticket = JSON.parse(ticketData);
-      await removeTicketFromCalendar(ticket.id);
+      const ticket = JSON.parse(ticketData)
+      await removeTicketFromCalendar(ticket.id)
     }
-  };
+  }
 
   // Navigation entre les mois
   const goToPreviousMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
-  };
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))
+  }
 
   const goToNextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
-  };
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))
+  }
 
   // Navigation entre les semaines
   const goToPreviousWeek = () => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(currentDate.getDate() - 7);
-    setCurrentDate(newDate);
-  };
+    const newDate = new Date(currentDate)
+    newDate.setDate(currentDate.getDate() - 7)
+    setCurrentDate(newDate)
+  }
 
   const goToNextWeek = () => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(currentDate.getDate() + 7);
-    setCurrentDate(newDate);
-  };
+    const newDate = new Date(currentDate)
+    newDate.setDate(currentDate.getDate() + 7)
+    setCurrentDate(newDate)
+  }
 
   // Navigation entre les jours
   const goToPreviousDay = () => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(currentDate.getDate() - 1);
-    setCurrentDate(newDate);
-  };
+    const newDate = new Date(currentDate)
+    newDate.setDate(currentDate.getDate() - 1)
+    setCurrentDate(newDate)
+  }
 
   const goToNextDay = () => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(currentDate.getDate() + 1);
-    setCurrentDate(newDate);
-  };
+    const newDate = new Date(currentDate)
+    newDate.setDate(currentDate.getDate() + 1)
+    setCurrentDate(newDate)
+  }
+  
+  // Aller à aujourd'hui
+  const goToToday = () => {
+    setCurrentDate(new Date())
+  }
+  
+  // Obtenir le titre de navigation
+  const getNavigationTitle = () => {
+    const monthNames = [
+      'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+      'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+    ]
+    
+    if (viewMode === 'month') {
+      return `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`
+    } else if (viewMode === 'week') {
+      const monday = new Date(currentDate)
+      const day = monday.getDay()
+      const diff = monday.getDate() - day + (day === 0 ? -6 : 1)
+      monday.setDate(diff)
+      return `Semaine du ${monday.getDate()} ${monthNames[monday.getMonth()]}`
+    } else {
+      const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
+      return `${days[currentDate.getDay()]} ${currentDate.getDate()} ${monthNames[currentDate.getMonth()]}`
+    }
+  }
 
   if (loading) {
     return (
       <div className={styles.container}>
-        <main className={styles.main}>
-          <h1 className={styles.title}>Chargement...</h1>
-        </main>
+        <div className={styles.loadingState}>
+          <div className={styles.spinner}></div>
+          <div className={styles.loadingText}>Chargement du calendrier...</div>
+        </div>
       </div>
-    );
+    )
   }
 
   if (error) {
     return (
       <div className={styles.container}>
-        <main className={styles.main}>
-          <h1 className={styles.title}>Erreur</h1>
-          <p>{error}</p>
-          <p className={styles.error}>
+        <div className={styles.errorState}>
+          <h1 className={styles.errorTitle}>Erreur de connexion</h1>
+          <p className={styles.errorMessage}>{error}</p>
+          <p className={styles.errorHint}>
             Vérifiez que vous avez bien configuré vos clés Supabase dans .env.local
           </p>
-        </main>
+        </div>
       </div>
-    );
+    )
   }
+
+  const colorOptions = [
+    { value: '#fff3cd', label: 'Jaune' },
+    { value: '#d1ecf1', label: 'Bleu' },
+    { value: '#f8d7da', label: 'Rouge' },
+    { value: '#d4edda', label: 'Vert' },
+    { value: '#e2d5f1', label: 'Violet' }
+  ]
 
   return (
     <div className={styles.container}>
       <Head>
-        <title>Mon Calendrier</title>
+        <title>Calendrier Moderne</title>
         <meta
           name="description"
-          content="Application calendrier avec drag and drop"
+          content="Application calendrier moderne avec drag and drop"
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>Mon Calendrier avec Drag & Drop</h1>
+      <header className={styles.header}>
+        <div className={styles.logo}>
+          <div className={styles.logoIcon}>📅</div>
+          <span>Calendrier Pro</span>
+        </div>
+      </header>
 
-        <div className={styles.content}>
-          <div className={styles.ticketsColumn}>
-            <h2>Tickets</h2>
+      <main className={styles.main}>
+        {/* Sidebar */}
+        <aside className={styles.sidebar}>
+          <div className={styles.sidebarHeader}>
+            <h2 className={styles.sidebarTitle}>Tickets</h2>
             
             {/* Formulaire pour créer un nouveau ticket */}
             <form onSubmit={handleAddTicket} className={styles.addTicketForm}>
-              <input
-                type="text"
-                placeholder="Titre du ticket..."
-                value={newTicketTitle}
-                onChange={(e) => setNewTicketTitle(e.target.value)}
-                className={styles.ticketInput}
-              />
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Titre</label>
+                <input
+                  type="text"
+                  placeholder="Nouveau ticket..."
+                  value={newTicketTitle}
+                  onChange={(e) => setNewTicketTitle(e.target.value)}
+                  className="modern-input"
+                />
+              </div>
               
-              <div className={styles.colorPicker}>
-                <label>Couleur:</label>
-                <div className={styles.colorOptions}>
-                  <button
-                    type="button"
-                    className={`${styles.colorButton} ${newTicketColor === "#FFE5B4" ? styles.selectedColor : ""}`}
-                    style={{ backgroundColor: "#FFE5B4" }}
-                    onClick={() => setNewTicketColor("#FFE5B4")}
-                  />
-                  <button
-                    type="button"
-                    className={`${styles.colorButton} ${newTicketColor === "#B4E5FF" ? styles.selectedColor : ""}`}
-                    style={{ backgroundColor: "#B4E5FF" }}
-                    onClick={() => setNewTicketColor("#B4E5FF")}
-                  />
-                  <button
-                    type="button"
-                    className={`${styles.colorButton} ${newTicketColor === "#FFB4B4" ? styles.selectedColor : ""}`}
-                    style={{ backgroundColor: "#FFB4B4" }}
-                    onClick={() => setNewTicketColor("#FFB4B4")}
-                  />
-                  <button
-                    type="button"
-                    className={`${styles.colorButton} ${newTicketColor === "#D4FFB4" ? styles.selectedColor : ""}`}
-                    style={{ backgroundColor: "#D4FFB4" }}
-                    onClick={() => setNewTicketColor("#D4FFB4")}
-                  />
-                  <button
-                    type="button"
-                    className={`${styles.colorButton} ${newTicketColor === "#E5B4FF" ? styles.selectedColor : ""}`}
-                    style={{ backgroundColor: "#E5B4FF" }}
-                    onClick={() => setNewTicketColor("#E5B4FF")}
-                  />
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Couleur</label>
+                <div className={styles.colorPicker}>
+                  {colorOptions.map(color => (
+                    <button
+                      key={color.value}
+                      type="button"
+                      className={`${styles.colorButton} ${newTicketColor === color.value ? styles.selected : ""}`}
+                      style={{ backgroundColor: color.value }}
+                      onClick={() => setNewTicketColor(color.value)}
+                      title={color.label}
+                    />
+                  ))}
                 </div>
               </div>
               
-              <div className={styles.technicianPicker}>
-                <label>Technicien:</label>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Technicien</label>
                 <select 
                   value={newTicketTechnician}
                   onChange={(e) => setNewTicketTechnician(e.target.value)}
-                  className={styles.technicianSelect}
+                  className="modern-select"
                 >
                   {TECHNICIANS.map(tech => (
                     <option key={tech} value={tech}>{tech}</option>
@@ -241,73 +265,86 @@ const Home: NextPage = () => {
                 </select>
               </div>
               
-              <button type="submit" className={styles.addButton}>
+              <button type="submit" className="modern-button modern-button-primary">
                 Ajouter le ticket
               </button>
             </form>
-            
-            {/* Zone de dépôt pour retirer les tickets du calendrier */}
-            <div 
-              className={`${styles.removeDropZone} ${isDraggingOver ? styles.dragOver : ''}`}
-              onDrop={(e) => {
-                handleRemoveTicket(e);
-                setIsDraggingOver(false);
-              }}
-              onDragOver={(e) => {
-                handleDragOver(e);
-                setIsDraggingOver(true);
-              }}
-              onDragLeave={() => setIsDraggingOver(false)}
-            >
-              <div className={styles.removeIcon}>📥</div>
-              <p>Glissez ici pour retirer du calendrier</p>
-            </div>
-            
-            <div className={styles.ticketsList}>
-              {unplacedTickets.map((ticket) => (
-                <Ticket
-                  key={ticket.id}
-                  id={ticket.id}
-                  title={ticket.title}
-                  color={ticket.color}
-                  technician={ticket.technician}
-                  onDragStart={handleDragStart}
-                />
-              ))}
-            </div>
           </div>
+          
+          {/* Zone de dépôt pour retirer les tickets du calendrier */}
+          <div 
+            className={`${styles.removeDropZone} ${isDraggingOver ? styles.dragOver : ''}`}
+            onDrop={(e) => {
+              handleRemoveTicket(e)
+              setIsDraggingOver(false)
+            }}
+            onDragOver={(e) => {
+              handleDragOver(e)
+              setIsDraggingOver(true)
+            }}
+            onDragLeave={() => setIsDraggingOver(false)}
+          >
+            <div className={styles.removeIcon}>📥</div>
+            <p className={styles.removeText}>Glissez ici pour retirer du calendrier</p>
+          </div>
+          
+          <div className={styles.ticketsList}>
+            {unplacedTickets.map((ticket) => (
+              <ModernTicket
+                key={ticket.id}
+                id={ticket.id}
+                title={ticket.title}
+                color={ticket.color}
+                technician={ticket.technician}
+                onDragStart={handleDragStart}
+              />
+            ))}
+          </div>
+        </aside>
 
-          <div className={styles.calendarColumn}>
-            <div className={styles.calendarHeader}>
-              <h2>Calendrier</h2>
-              <div className={styles.filterSection}>
-                <label>Filtrer par technicien:</label>
-                <select 
-                  value={selectedTechnician}
-                  onChange={(e) => setSelectedTechnician(e.target.value)}
-                  className={styles.technicianFilter}
-                >
-                  <option value="Tous">Tous les techniciens</option>
-                  {TECHNICIANS.map(tech => (
-                    <option key={tech} value={tech}>{tech}</option>
-                  ))}
-                </select>
+        {/* Calendar Area */}
+        <div className={styles.calendarArea}>
+          {/* Calendar Controls */}
+          <div className={styles.calendarControls}>
+            <div className={styles.navigationGroup}>
+              <button onClick={
+                viewMode === 'month' ? goToPreviousMonth :
+                viewMode === 'week' ? goToPreviousWeek :
+                goToPreviousDay
+              } className={styles.navButton}>
+                ‹
+              </button>
+              <div className={styles.navigationTitle}>
+                {getNavigationTitle()}
               </div>
-              <div className={styles.viewButtons}>
+              <button onClick={
+                viewMode === 'month' ? goToNextMonth :
+                viewMode === 'week' ? goToNextWeek :
+                goToNextDay
+              } className={styles.navButton}>
+                ›
+              </button>
+              <button onClick={goToToday} className={styles.todayButton}>
+                Aujourd'hui
+              </button>
+            </div>
+            
+            <div className={styles.viewControls}>
+              <div className={styles.viewButtonGroup}>
                 <button 
-                  className={`${styles.viewButton} ${viewMode === 'month' ? styles.activeView : ''}`}
+                  className={`${styles.viewButton} ${viewMode === 'month' ? styles.active : ''}`}
                   onClick={() => setViewMode('month')}
                 >
                   Mois
                 </button>
                 <button 
-                  className={`${styles.viewButton} ${viewMode === 'week' ? styles.activeView : ''}`}
+                  className={`${styles.viewButton} ${viewMode === 'week' ? styles.active : ''}`}
                   onClick={() => setViewMode('week')}
                 >
                   Semaine
                 </button>
                 <button 
-                  className={`${styles.viewButton} ${viewMode === 'day' ? styles.activeView : ''}`}
+                  className={`${styles.viewButton} ${viewMode === 'day' ? styles.active : ''}`}
                   onClick={() => setViewMode('day')}
                 >
                   Jour
@@ -315,8 +352,25 @@ const Home: NextPage = () => {
               </div>
             </div>
             
+            <div className={styles.filterSection}>
+              <label className={styles.filterLabel}>Technicien:</label>
+              <select 
+                value={selectedTechnician}
+                onChange={(e) => setSelectedTechnician(e.target.value)}
+                className={`modern-select ${styles.technicianFilter}`}
+              >
+                <option value="Tous">Tous les techniciens</option>
+                {TECHNICIANS.map(tech => (
+                  <option key={tech} value={tech}>{tech}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          
+          {/* Calendar Content */}
+          <div className={styles.calendarContent}>
             {viewMode === 'month' && (
-              <Calendar 
+              <ModernCalendar 
                 droppedTickets={ticketsByDate}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
@@ -324,11 +378,12 @@ const Home: NextPage = () => {
                 currentDate={currentDate}
                 onPreviousMonth={goToPreviousMonth}
                 onNextMonth={goToNextMonth}
+                onToday={goToToday}
               />
             )}
             
             {viewMode === 'week' && (
-              <WeekView 
+              <ModernWeekView 
                 droppedTickets={ticketsByDate}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
@@ -336,11 +391,12 @@ const Home: NextPage = () => {
                 currentDate={currentDate}
                 onPreviousWeek={goToPreviousWeek}
                 onNextWeek={goToNextWeek}
+                onToday={goToToday}
               />
             )}
             
             {viewMode === 'day' && (
-              <DayView 
+              <ModernDayView 
                 droppedTickets={ticketsByDate}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
@@ -348,13 +404,14 @@ const Home: NextPage = () => {
                 currentDate={currentDate}
                 onPreviousDay={goToPreviousDay}
                 onNextDay={goToNextDay}
+                onToday={goToToday}
               />
             )}
           </div>
         </div>
       </main>
     </div>
-  );
-};
+  )
+}
 
-export default Home;
+export default ModernHome

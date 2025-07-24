@@ -1,0 +1,253 @@
+/* Modern Calendar Theme - Inspired by Gmail & Mac Calendar */
+
+:root {
+  /* Colors */
+  --primary-blue: #1a73e8;
+  --primary-blue-hover: #1765cc;
+  --primary-blue-light: #e8f0fe;
+  
+  /* Grays */
+  --gray-50: #f8f9fa;
+  --gray-100: #f1f3f4;
+  --gray-200: #e8eaed;
+  --gray-300: #dadce0;
+  --gray-400: #bdc1c6;
+  --gray-500: #9aa0a6;
+  --gray-600: #80868b;
+  --gray-700: #5f6368;
+  --gray-800: #3c4043;
+  --gray-900: #202124;
+  
+  /* Background */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-hover: #f1f3f4;
+  --bg-active: #e8eaed;
+  
+  /* Text */
+  --text-primary: #202124;
+  --text-secondary: #5f6368;
+  --text-disabled: #9aa0a6;
+  
+  /* Borders */
+  --border-color: #dadce0;
+  --border-light: #e8eaed;
+  --border-dark: #bdc1c6;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+  --shadow-md: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+  --shadow-lg: 0 2px 3px 0 rgba(60,64,67,0.3), 0 6px 10px 4px rgba(60,64,67,0.15);
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+  
+  /* Font */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Helvetica Neue', sans-serif;
+  
+  /* Z-index */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal: 300;
+  --z-popover: 400;
+  --z-tooltip: 500;
+}
+
+/* Ticket Colors - Soft Pastels */
+.ticket-yellow { 
+  --ticket-bg: #fff3cd; 
+  --ticket-border: #ffeaa7;
+  --ticket-text: #856404;
+}
+
+.ticket-blue { 
+  --ticket-bg: #d1ecf1; 
+  --ticket-border: #bee5eb;
+  --ticket-text: #0c5460;
+}
+
+.ticket-red { 
+  --ticket-bg: #f8d7da; 
+  --ticket-border: #f5c6cb;
+  --ticket-text: #721c24;
+}
+
+.ticket-green { 
+  --ticket-bg: #d4edda; 
+  --ticket-border: #c3e6cb;
+  --ticket-text: #155724;
+}
+
+.ticket-purple { 
+  --ticket-bg: #e2d5f1; 
+  --ticket-border: #d4bcf7;
+  --ticket-text: #4a148c;
+}
+
+/* Modern Button Style */
+.modern-button {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 24px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  outline: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.modern-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.modern-button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.modern-button-primary {
+  background-color: var(--primary-blue);
+  color: white;
+}
+
+.modern-button-primary:hover {
+  background-color: var(--primary-blue-hover);
+}
+
+.modern-button-secondary {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.modern-button-secondary:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--border-dark);
+}
+
+/* Modern Input Style */
+.modern-input {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  padding: 10px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: all var(--transition-base);
+  outline: none;
+  width: 100%;
+}
+
+.modern-input:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px var(--primary-blue-light);
+}
+
+.modern-input::placeholder {
+  color: var(--text-disabled);
+}
+
+/* Modern Select Style */
+.modern-select {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  padding: 10px 36px 10px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235f6368' d='M6 8.825L1.175 4 2.59 2.59 6 6l3.41-3.41L10.825 4z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  transition: all var(--transition-base);
+}
+
+.modern-select:hover {
+  border-color: var(--border-dark);
+  background-color: var(--bg-hover);
+}
+
+.modern-select:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px var(--primary-blue-light);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-400);
+  border-radius: var(--radius-md);
+  border: 2px solid var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-500);
+}
+
+/* Utility Classes */
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow-md { box-shadow: var(--shadow-md); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
+
+.rounded-sm { border-radius: var(--radius-sm); }
+.rounded-md { border-radius: var(--radius-md); }
+.rounded-lg { border-radius: var(--radius-lg); }
+.rounded-xl { border-radius: var(--radius-xl); }
+.rounded-full { border-radius: var(--radius-full); }
+
+/* Animation Classes */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.animate-fadeIn { animation: fadeIn var(--transition-base); }
+.animate-slideIn { animation: slideIn var(--transition-base); }
+.animate-scaleIn { animation: scaleIn var(--transition-base); }

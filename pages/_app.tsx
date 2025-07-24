@@ -1,4 +1,5 @@
 import '../styles/globals.css'
+import '../styles/modern-theme.css'
 import type { AppProps } from 'next/app'
 import { useEffect } from 'react'
 import { supabase } from '../lib/supabase'

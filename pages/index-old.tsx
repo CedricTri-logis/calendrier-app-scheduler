@@ -5,91 +5,54 @@ import Ticket from "../components/Ticket";
 import Calendar from "../components/Calendar";
 import WeekView from "../components/WeekView";
 import DayView from "../components/DayView";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useTickets } from "../hooks/useTickets";
+import { formatDateForDB } from "../utils/dateHelpers";
+import { TECHNICIANS } from "../data/technicians";
 
 const Home: NextPage = () => {
-  // Données des tickets
-  const [tickets, setTickets] = useState([
-    { id: 1, title: "Réunion équipe", color: "#FFE5B4" },
-    { id: 2, title: "Appel client", color: "#B4E5FF" },
-    { id: 3, title: "Révision projet", color: "#FFB4B4" },
-    { id: 4, title: "Nouveau ticket", color: "#D4FFB4" },
-  ]);
-
-  // État pour stocker les tickets déposés sur le calendrier (plusieurs par jour)
-  // Changé pour utiliser des clés string (date) au lieu de number (jour)
-  const [droppedTickets, setDroppedTickets] = useState<{ [key: string]: any[] }>({});
+  // Hook Supabase pour gérer les tickets
+  const { tickets, loading, error, createTicket, updateTicketPosition, removeTicketFromCalendar } = useTickets();
   
   // État pour le formulaire de nouveau ticket
   const [newTicketTitle, setNewTicketTitle] = useState("");
   const [newTicketColor, setNewTicketColor] = useState("#FFE5B4");
-  const [nextId, setNextId] = useState(5); // Commence à 5 car on a déjà 4 tickets
+  const [newTicketTechnician, setNewTicketTechnician] = useState("Non assigné");
   
   // État pour la date actuelle
   const [currentDate, setCurrentDate] = useState(new Date());
   
   // État pour la vue actuelle (mois, semaine, jour)
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
+  
+  // État pour le filtre technicien
+  const [selectedTechnician, setSelectedTechnician] = useState<string>("Tous");
+  
+  // État pour le survol de la zone de retrait
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
 
-  // Fonction pour créer une clé unique basée sur la date complète
-  const getDateKey = (year: number, month: number, day: number): string => {
-    return `${year}-${month + 1}-${day}`;
-  };
-
-  // Fonction pour créer une clé à partir d'une Date
-  const getDateKeyFromDate = (date: Date): string => {
-    return getDateKey(date.getFullYear(), date.getMonth(), date.getDate());
-  };
-
-  // Charger les données sauvegardées au démarrage
-  useEffect(() => {
-    // Charger les tickets disponibles
-    const savedTickets = localStorage.getItem('calendarTickets');
-    if (savedTickets) {
-      setTickets(JSON.parse(savedTickets));
+  // Filtrer les tickets pour obtenir ceux qui ne sont pas placés (sans filtre)
+  const unplacedTickets = tickets.filter(ticket => !ticket.date);
+  
+  // Filtrer les tickets selon le technicien sélectionné (pour le calendrier uniquement)
+  const filteredTicketsForCalendar = selectedTechnician === "Tous" 
+    ? tickets 
+    : tickets.filter(ticket => ticket.technician === selectedTechnician);
+  
+  // Organiser les tickets placés par date (avec filtre)
+  const ticketsByDate = filteredTicketsForCalendar.reduce((acc, ticket) => {
+    if (ticket.date) {
+      if (!acc[ticket.date]) {
+        acc[ticket.date] = [];
+      }
+      acc[ticket.date].push(ticket);
     }
-
-    // Charger les tickets déposés
-    const savedDroppedTickets = localStorage.getItem('calendarDroppedTickets');
-    if (savedDroppedTickets) {
-      setDroppedTickets(JSON.parse(savedDroppedTickets));
-    }
-
-    // Charger le prochain ID
-    const savedNextId = localStorage.getItem('calendarNextId');
-    if (savedNextId) {
-      setNextId(parseInt(savedNextId));
-    }
-  }, []); // [] signifie : exécute seulement au démarrage
-
-  // Sauvegarder les tickets quand ils changent
-  useEffect(() => {
-    localStorage.setItem('calendarTickets', JSON.stringify(tickets));
-  }, [tickets]);
-
-  // Sauvegarder les tickets déposés quand ils changent
-  useEffect(() => {
-    localStorage.setItem('calendarDroppedTickets', JSON.stringify(droppedTickets));
-  }, [droppedTickets]);
-
-  // Sauvegarder le prochain ID quand il change
-  useEffect(() => {
-    localStorage.setItem('calendarNextId', nextId.toString());
-  }, [nextId]);
+    return acc;
+  }, {} as { [key: string]: typeof tickets });
 
   // Gérer le début du drag
   const handleDragStart = (e: React.DragEvent, ticketId: number) => {
-    // Chercher d'abord dans les tickets non placés
-    let ticket = tickets.find(t => t.id === ticketId);
-    
-    // Si pas trouvé, chercher dans les tickets déposés
-    if (!ticket) {
-      for (const dateTickets of Object.values(droppedTickets)) {
-        ticket = dateTickets.find(t => t.id === ticketId);
-        if (ticket) break;
-      }
-    }
-    
+    const ticket = tickets.find(t => t.id === ticketId);
     if (ticket) {
       e.dataTransfer.setData('ticket', JSON.stringify(ticket));
       e.dataTransfer.effectAllowed = 'move';
@@ -103,44 +66,43 @@ const Home: NextPage = () => {
   };
 
   // Gérer le drop sur une date
-  const handleDrop = (dayNumber: number, ticket: any, year?: number, month?: number) => {
-    // Créer la clé en fonction du contexte
-    let dateKey: string;
-    if (year !== undefined && month !== undefined) {
-      dateKey = getDateKey(year, month, dayNumber);
-    } else {
-      // Pour la compatibilité avec l'ancien système
-      dateKey = getDateKey(currentDate.getFullYear(), currentDate.getMonth(), dayNumber);
-    }
-
-    setDroppedTickets(prev => {
-      // Si la date a déjà des tickets, ajoute le nouveau
-      const existingTickets = prev[dateKey] || [];
-      return {
-        ...prev,
-        [dateKey]: [...existingTickets, ticket]
-      };
-    });
+  const handleDrop = async (dayNumber: number, ticket: any, year?: number, month?: number) => {
+    // Créer la date
+    const dropDate = new Date(
+      year ?? currentDate.getFullYear(),
+      month ?? currentDate.getMonth(),
+      dayNumber
+    );
     
-    // Retirer le ticket de la liste originale
-    setTickets(prev => prev.filter(t => t.id !== ticket.id));
+    const dateString = formatDateForDB(dropDate);
+    const hour = ticket.hour ?? -1;
+    
+    // Si un technicien est sélectionné et que ce n'est pas "Tous", 
+    // assigner automatiquement le ticket à ce technicien
+    const technicianToAssign = selectedTechnician !== "Tous" ? selectedTechnician : ticket.technician;
+    
+    // Mettre à jour dans Supabase avec le technicien
+    await updateTicketPosition(ticket.id, dateString, hour, technicianToAssign);
   };
 
   // Ajouter un nouveau ticket
-  const handleAddTicket = (e: React.FormEvent) => {
+  const handleAddTicket = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (newTicketTitle.trim() === "") return;
     
-    const newTicket = {
-      id: nextId,
-      title: newTicketTitle,
-      color: newTicketColor
-    };
-    
-    setTickets(prev => [...prev, newTicket]);
-    setNextId(prev => prev + 1);
+    await createTicket(newTicketTitle, newTicketColor, newTicketTechnician);
     setNewTicketTitle("");
+  };
+
+  // Gérer le retrait d'un ticket du calendrier
+  const handleRemoveTicket = async (e: React.DragEvent) => {
+    e.preventDefault();
+    const ticketData = e.dataTransfer.getData('ticket');
+    if (ticketData) {
+      const ticket = JSON.parse(ticketData);
+      await removeTicketFromCalendar(ticket.id);
+    }
   };
 
   // Navigation entre les mois
@@ -177,6 +139,30 @@ const Home: NextPage = () => {
     newDate.setDate(currentDate.getDate() + 1);
     setCurrentDate(newDate);
   };
+
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <main className={styles.main}>
+          <h1 className={styles.title}>Chargement...</h1>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <main className={styles.main}>
+          <h1 className={styles.title}>Erreur</h1>
+          <p>{error}</p>
+          <p className={styles.error}>
+            Vérifiez que vous avez bien configuré vos clés Supabase dans .env.local
+          </p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
@@ -242,18 +228,49 @@ const Home: NextPage = () => {
                 </div>
               </div>
               
+              <div className={styles.technicianPicker}>
+                <label>Technicien:</label>
+                <select 
+                  value={newTicketTechnician}
+                  onChange={(e) => setNewTicketTechnician(e.target.value)}
+                  className={styles.technicianSelect}
+                >
+                  {TECHNICIANS.map(tech => (
+                    <option key={tech} value={tech}>{tech}</option>
+                  ))}
+                </select>
+              </div>
+              
               <button type="submit" className={styles.addButton}>
                 Ajouter le ticket
               </button>
             </form>
             
+            {/* Zone de dépôt pour retirer les tickets du calendrier */}
+            <div 
+              className={`${styles.removeDropZone} ${isDraggingOver ? styles.dragOver : ''}`}
+              onDrop={(e) => {
+                handleRemoveTicket(e);
+                setIsDraggingOver(false);
+              }}
+              onDragOver={(e) => {
+                handleDragOver(e);
+                setIsDraggingOver(true);
+              }}
+              onDragLeave={() => setIsDraggingOver(false)}
+            >
+              <div className={styles.removeIcon}>📥</div>
+              <p>Glissez ici pour retirer du calendrier</p>
+            </div>
+            
             <div className={styles.ticketsList}>
-              {tickets.map((ticket) => (
+              {unplacedTickets.map((ticket) => (
                 <Ticket
                   key={ticket.id}
                   id={ticket.id}
                   title={ticket.title}
                   color={ticket.color}
+                  technician={ticket.technician}
                   onDragStart={handleDragStart}
                 />
               ))}
@@ -263,6 +280,19 @@ const Home: NextPage = () => {
           <div className={styles.calendarColumn}>
             <div className={styles.calendarHeader}>
               <h2>Calendrier</h2>
+              <div className={styles.filterSection}>
+                <label>Filtrer par technicien:</label>
+                <select 
+                  value={selectedTechnician}
+                  onChange={(e) => setSelectedTechnician(e.target.value)}
+                  className={styles.technicianFilter}
+                >
+                  <option value="Tous">Tous les techniciens</option>
+                  {TECHNICIANS.map(tech => (
+                    <option key={tech} value={tech}>{tech}</option>
+                  ))}
+                </select>
+              </div>
               <div className={styles.viewButtons}>
                 <button 
                   className={`${styles.viewButton} ${viewMode === 'month' ? styles.activeView : ''}`}
@@ -287,7 +317,7 @@ const Home: NextPage = () => {
             
             {viewMode === 'month' && (
               <Calendar 
-                droppedTickets={droppedTickets}
+                droppedTickets={ticketsByDate}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragStart={handleDragStart}
@@ -299,7 +329,7 @@ const Home: NextPage = () => {
             
             {viewMode === 'week' && (
               <WeekView 
-                droppedTickets={droppedTickets}
+                droppedTickets={ticketsByDate}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragStart={handleDragStart}
@@ -311,7 +341,7 @@ const Home: NextPage = () => {
             
             {viewMode === 'day' && (
               <DayView 
-                droppedTickets={droppedTickets}
+                droppedTickets={ticketsByDate}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragStart={handleDragStart}
