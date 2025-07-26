@@ -59,11 +59,11 @@ export async function loadMigrations(): Promise<Migration[]> {
   }
 
   // Convertir en tableau et trier par version
-  for (const [, migration] of migrationMap) {
+  Array.from(migrationMap.values()).forEach(migration => {
     if (migration.upSql && migration.downSql) {
       migrations.push(migration as Migration)
     }
-  }
+  })
 
   return migrations.sort((a, b) => a.version.localeCompare(b.version))
 }
