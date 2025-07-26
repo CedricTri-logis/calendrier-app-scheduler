@@ -30,4 +30,14 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts.env.local
+next-env.d.ts
+
+# test artifacts
+/test-results/
+/playwright-report/
+/test-*.html
+/debug-*.js
+*.log
+
+# environment files
+.env.local

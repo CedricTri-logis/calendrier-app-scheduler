@@ -5,7 +5,7 @@ export interface Technician {
   name: string
   color: string
   is_primary?: boolean
-  is_active?: boolean
+  active?: boolean
 }
 
 export interface Ticket {
@@ -64,7 +64,7 @@ export function normalizeTicket(ticket: any): Ticket {
       name: ticket.technician.name || 'Technicien',
       color: ticket.technician.color || '#3B82F6',
       is_primary: true,
-      is_active: ticket.technician.is_active !== false
+      active: ticket.technician.active !== false
     }]
   }
   // Pas de technicien assigné

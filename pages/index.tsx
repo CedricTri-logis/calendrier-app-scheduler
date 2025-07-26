@@ -377,7 +377,7 @@ const ModernHome: NextPage = () => {
                 onChange={(e) => setNewTicketTechnicianId(e.target.value ? parseInt(e.target.value) : null)}
                 options={[
                   { value: '', label: 'Non assigné' },
-                  ...technicians.filter(tech => tech.is_active).map(tech => {
+                  ...technicians.filter(tech => tech.active).map(tech => {
                     const todayKey = formatDateForDB(new Date())
                     const todayStatus = getDateAvailabilityStatus(todayKey, schedules, tech.id)
                     let statusEmoji = ''
@@ -497,7 +497,7 @@ const ModernHome: NextPage = () => {
                   onChange={(e) => setSelectedTechnicianId(e.target.value ? parseInt(e.target.value) : null)}
                   options={[
                     { value: '', label: 'Tous les techniciens' },
-                    ...technicians.filter(tech => tech.is_active).map(tech => {
+                    ...technicians.filter(tech => tech.active).map(tech => {
                       const todayKey = formatDateForDB(new Date())
                       const todayStatus = getDateAvailabilityStatus(todayKey, schedules, tech.id)
                       let statusEmoji = ''

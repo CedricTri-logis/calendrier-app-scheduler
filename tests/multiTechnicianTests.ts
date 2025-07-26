@@ -24,11 +24,11 @@ class MultiTechnicianTestSuite {
   
   // Données de test
   private techniciens: Technician[] = [
-    { id: 1, name: 'Jean Dupont', color: '#3B82F6', is_active: true },
-    { id: 2, name: 'Marie Martin', color: '#10B981', is_active: true },
-    { id: 3, name: 'Pierre Durand', color: '#8B5CF6', is_active: true },
-    { id: 4, name: 'Sophie Bernard', color: '#F59E0B', is_active: true },
-    { id: 5, name: 'Non assigné', color: '#6B7280', is_active: true }
+    { id: 1, name: 'Jean Dupont', color: '#3B82F6', active: true },
+    { id: 2, name: 'Marie Martin', color: '#10B981', active: true },
+    { id: 3, name: 'Pierre Durand', color: '#8B5CF6', active: true },
+    { id: 4, name: 'Sophie Bernard', color: '#F59E0B', active: true },
+    { id: 5, name: 'Non assigné', color: '#6B7280', active: true }
   ]
   
   private ticketSansDate: Ticket = {
@@ -115,7 +115,7 @@ class MultiTechnicianTestSuite {
       title: 'Test 2',
       color: '#FFF',
       technician_id: 1,
-      technician: { id: 1, name: 'Jean', color: '#00F', is_active: true }
+      technician: { id: 1, name: 'Jean', color: '#00F', active: true }
     })
     this.addResult(
       'Normalisation ticket ancien système',
