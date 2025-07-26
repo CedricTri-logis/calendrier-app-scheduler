@@ -82,7 +82,7 @@ const Home: NextPage = () => {
     const technicianToAssign = selectedTechnician !== "Tous" ? selectedTechnician : ticket.technician_name;
     
     // Mettre à jour dans Supabase avec le technicien
-    await updateTicketPosition(ticket.id, dateString, hour, technicianToAssign);
+    await updateTicketPosition(ticket.id, dateString, hour);
   };
 
   // Ajouter un nouveau ticket
@@ -91,7 +91,7 @@ const Home: NextPage = () => {
     
     if (newTicketTitle.trim() === "") return;
     
-    await createTicket(newTicketTitle, newTicketColor, newTicketTechnician);
+    await createTicket(newTicketTitle, newTicketColor);
     setNewTicketTitle("");
   };
 
