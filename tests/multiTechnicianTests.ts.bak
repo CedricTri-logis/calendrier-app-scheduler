@@ -106,7 +106,7 @@ class MultiTechnicianTestSuite {
     })
     this.addResult(
       'Normalisation ticket sans technicien',
-      normalized1.technician_name === 'Non assigné' && normalized1.technicians.length === 0
+      normalized1.technician_name === 'Non assigné' && (normalized1.technicians?.length || 0) === 0
     )
     
     // Test 1.2: Ticket avec ancien système

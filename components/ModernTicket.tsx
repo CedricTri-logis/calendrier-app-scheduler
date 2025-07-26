@@ -20,7 +20,7 @@ interface ModernTicketProps {
     id: number
     name: string
     color: string
-    is_primary: boolean
+    is_primary?: boolean
   }>
   onDragStart: (e: React.DragEvent, ticketId: number) => void
   onAddTechnician?: (ticketId: number) => void
