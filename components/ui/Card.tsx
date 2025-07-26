@@ -1,7 +1,7 @@
 import React from 'react'
 import styles from '../../styles/components/Card.module.css'
 
-interface CardProps {
+export interface CardProps {
   children: React.ReactNode
   className?: string
   padding?: 'none' | 'small' | 'medium' | 'large'
