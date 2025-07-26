@@ -119,7 +119,7 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
   }
 
   // Filtrer les techniciens actifs
-  const activeTechnicians = technicians.filter(tech => tech.is_active && tech.name !== 'Non assigné')
+  const activeTechnicians = technicians.filter(tech => tech.active && tech.name !== 'Non assigné')
 
   return (
     <div className={styles.gridContainer}>

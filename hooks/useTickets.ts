@@ -17,7 +17,7 @@ export interface TicketWithTechnician {
     id: number
     name: string
     color: string
-    is_active: boolean
+    active: boolean
     is_primary: boolean
   }>
   primary_technician_name?: string | null
@@ -45,7 +45,7 @@ export function useTickets() {
             id,
             name,
             color,
-            is_active
+            active
           )
         `)
         .order('created_at', { ascending: false })
@@ -62,7 +62,7 @@ export function useTickets() {
             id,
             name,
             color,
-            is_active
+            active
           )
         `)
 
