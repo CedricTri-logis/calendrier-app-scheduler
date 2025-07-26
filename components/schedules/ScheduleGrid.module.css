@@ -1,0 +1,180 @@
+.gridContainer {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.gridHeader {
+  display: flex;
+  background: #f8f9fa;
+  border-bottom: 2px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.gridBody {
+  min-height: 400px;
+}
+
+.technicianColumn {
+  width: 180px;
+  flex-shrink: 0;
+  border-right: 1px solid #e0e0e0;
+}
+
+.dayColumn {
+  flex: 1;
+  min-width: 140px;
+  border-right: 1px solid #e0e0e0;
+}
+
+.dayColumn:last-of-type {
+  border-right: none;
+}
+
+.totalColumn {
+  width: 80px;
+  flex-shrink: 0;
+  background: #f8f9fa;
+  border-left: 2px solid #e0e0e0;
+}
+
+.headerCell {
+  padding: 1rem;
+  font-weight: 600;
+  text-align: center;
+  color: #333;
+}
+
+.technicianColumn .headerCell {
+  text-align: left;
+}
+
+.dayName {
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.dayDate {
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.headerCell.today {
+  background: #e3f2fd;
+  color: #0070f3;
+}
+
+.technicianRow {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+  min-height: 100px;
+}
+
+.technicianRow:last-child {
+  border-bottom: none;
+}
+
+.technicianInfo {
+  padding: 1rem;
+  border-left: 4px solid;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.technicianName {
+  font-weight: 500;
+  color: #333;
+}
+
+.scheduleContainer {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 100px;
+}
+
+.dayHours {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #666;
+  padding: 0 0.75rem 0.75rem;
+  font-weight: 500;
+}
+
+.weeklyTotal {
+  padding: 1rem;
+  text-align: center;
+  font-weight: 600;
+  color: #333;
+  background: #f0f7ff;
+}
+
+.addMoreButton {
+  margin-top: 0.25rem;
+}
+
+.addMoreButton button {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  background: transparent;
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+  color: #666;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.addMoreButton button:hover {
+  background: #f8f9fa;
+  border-color: #999;
+  color: #333;
+}
+
+.addMoreButton svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .technicianColumn {
+    width: 140px;
+  }
+  
+  .dayColumn {
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 768px) {
+  .gridContainer {
+    overflow-x: auto;
+  }
+  
+  .gridHeader,
+  .technicianRow {
+    min-width: 1000px;
+  }
+  
+  .technicianColumn {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 5;
+  }
+  
+  .technicianColumn .headerCell {
+    background: #f8f9fa;
+  }
+}

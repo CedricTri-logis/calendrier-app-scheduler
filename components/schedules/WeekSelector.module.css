@@ -1,0 +1,93 @@
+.weekSelector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: #f0f0f0;
+  color: #333;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.navButton:hover {
+  background: #e0e0e0;
+  transform: translateY(-1px);
+}
+
+.navButton:active {
+  transform: translateY(0);
+}
+
+.weekInfo {
+  text-align: center;
+  min-width: 250px;
+}
+
+.weekTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.weekNumber {
+  font-size: 0.875rem;
+  color: #666;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.todayButton {
+  padding: 0.5rem 1rem;
+  background: #0070f3;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 1rem;
+}
+
+.todayButton:hover {
+  background: #0051cc;
+  transform: translateY(-1px);
+}
+
+.todayButton:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .weekSelector {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .weekInfo {
+    min-width: auto;
+    flex: 1;
+  }
+
+  .todayButton {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 0.5rem;
+  }
+}

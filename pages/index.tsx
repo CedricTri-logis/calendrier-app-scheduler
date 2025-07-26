@@ -7,17 +7,28 @@ import ModernWeekView from "../components/ModernWeekView"
 import ModernDayView from "../components/ModernDayView"
 import { useState } from "react"
 import { useTickets } from "../hooks/useTickets"
+import { useTechnicians } from "../hooks/useTechnicians"
+import { useSchedules } from "../hooks/useSchedules"
 import { formatDateForDB } from "../utils/dateHelpers"
-import { TECHNICIANS } from "../data/technicians"
+import { getAvailableDates } from "../utils/scheduleHelpers"
+import Button from "../components/ui/Button"
+import Input from "../components/ui/Input"
+import { LoadingContainer, SpinnerOverlay } from "../components/ui/Spinner"
 
 const ModernHome: NextPage = () => {
   // Hook Supabase pour gérer les tickets
   const { tickets, loading, error, createTicket, updateTicketPosition, removeTicketFromCalendar } = useTickets()
   
+  // Hook Supabase pour gérer les techniciens
+  const { technicians, loading: loadingTechnicians } = useTechnicians()
+  
+  // Hook Supabase pour gérer les horaires
+  const { schedules, loading: loadingSchedules } = useSchedules()
+  
   // État pour le formulaire de nouveau ticket
   const [newTicketTitle, setNewTicketTitle] = useState("")
   const [newTicketColor, setNewTicketColor] = useState("#fff3cd")
-  const [newTicketTechnician, setNewTicketTechnician] = useState("Non assigné")
+  const [newTicketTechnicianId, setNewTicketTechnicianId] = useState<number | null>(null)
   
   // État pour la date actuelle
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -26,7 +37,7 @@ const ModernHome: NextPage = () => {
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month')
   
   // État pour le filtre technicien
-  const [selectedTechnician, setSelectedTechnician] = useState<string>("Tous")
+  const [selectedTechnicianId, setSelectedTechnicianId] = useState<number | null>(null)
   
   // État pour le survol de la zone de retrait
   const [isDraggingOver, setIsDraggingOver] = useState(false)
@@ -35,9 +46,9 @@ const ModernHome: NextPage = () => {
   const unplacedTickets = tickets.filter(ticket => !ticket.date)
   
   // Filtrer les tickets selon le technicien sélectionné (pour le calendrier uniquement)
-  const filteredTicketsForCalendar = selectedTechnician === "Tous" 
+  const filteredTicketsForCalendar = selectedTechnicianId === null 
     ? tickets 
-    : tickets.filter(ticket => ticket.technician === selectedTechnician)
+    : tickets.filter(ticket => ticket.technician_id === selectedTechnicianId)
   
   // Organiser les tickets placés par date (avec filtre)
   const ticketsByDate = filteredTicketsForCalendar.reduce((acc, ticket) => {
@@ -77,12 +88,11 @@ const ModernHome: NextPage = () => {
     const dateString = formatDateForDB(dropDate)
     const hour = ticket.hour ?? -1
     
-    // Si un technicien est sélectionné et que ce n'est pas "Tous", 
-    // assigner automatiquement le ticket à ce technicien
-    const technicianToAssign = selectedTechnician !== "Tous" ? selectedTechnician : ticket.technician
+    // Si un technicien est sélectionné, assigner automatiquement le ticket à ce technicien
+    const technicianIdToAssign = selectedTechnicianId !== null ? selectedTechnicianId : ticket.technician_id
     
     // Mettre à jour dans Supabase avec le technicien
-    await updateTicketPosition(ticket.id, dateString, hour, technicianToAssign)
+    await updateTicketPosition(ticket.id, dateString, hour, technicianIdToAssign)
   }
 
   // Ajouter un nouveau ticket
@@ -91,7 +101,7 @@ const ModernHome: NextPage = () => {
     
     if (newTicketTitle.trim() === "") return
     
-    await createTicket(newTicketTitle, newTicketColor, newTicketTechnician)
+    await createTicket(newTicketTitle, newTicketColor, newTicketTechnicianId || undefined)
     setNewTicketTitle("")
   }
 
@@ -166,13 +176,10 @@ const ModernHome: NextPage = () => {
     }
   }
 
-  if (loading) {
+  if (loading || loadingTechnicians || loadingSchedules) {
     return (
       <div className={styles.container}>
-        <div className={styles.loadingState}>
-          <div className={styles.spinner}></div>
-          <div className={styles.loadingText}>Chargement du calendrier...</div>
-        </div>
+        <LoadingContainer text="Chargement du calendrier..." size="xlarge" />
       </div>
     )
   }
@@ -215,6 +222,14 @@ const ModernHome: NextPage = () => {
           <div className={styles.logoIcon}>📅</div>
           <span>Calendrier Pro</span>
         </div>
+        <nav className={styles.navigation}>
+          <a href="/schedules" className={styles.navLink}>
+            ⏰ Gérer les horaires
+          </a>
+          <a href="/migrations" className={styles.navLink}>
+            🗃️ Migrations
+          </a>
+        </nav>
       </header>
 
       <main className={styles.main}>
@@ -225,16 +240,13 @@ const ModernHome: NextPage = () => {
             
             {/* Formulaire pour créer un nouveau ticket */}
             <form onSubmit={handleAddTicket} className={styles.addTicketForm}>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Titre</label>
-                <input
-                  type="text"
-                  placeholder="Nouveau ticket..."
-                  value={newTicketTitle}
-                  onChange={(e) => setNewTicketTitle(e.target.value)}
-                  className="modern-input"
-                />
-              </div>
+              <Input
+                label="Titre"
+                placeholder="Nouveau ticket..."
+                value={newTicketTitle}
+                onChange={(e) => setNewTicketTitle(e.target.value)}
+                fullWidth
+              />
               
               <div className={styles.formGroup}>
                 <label className={styles.label}>Couleur</label>
@@ -252,22 +264,24 @@ const ModernHome: NextPage = () => {
                 </div>
               </div>
               
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Technicien</label>
-                <select 
-                  value={newTicketTechnician}
-                  onChange={(e) => setNewTicketTechnician(e.target.value)}
-                  className="modern-select"
-                >
-                  {TECHNICIANS.map(tech => (
-                    <option key={tech} value={tech}>{tech}</option>
-                  ))}
-                </select>
-              </div>
+              <Input
+                label="Technicien"
+                variant="select"
+                value={newTicketTechnicianId || ''}
+                onChange={(e) => setNewTicketTechnicianId(e.target.value ? parseInt(e.target.value) : null)}
+                options={[
+                  { value: '', label: 'Non assigné' },
+                  ...technicians.filter(tech => tech.is_active).map(tech => ({
+                    value: tech.id.toString(),
+                    label: tech.name
+                  }))
+                ]}
+                fullWidth
+              />
               
-              <button type="submit" className="modern-button modern-button-primary">
+              <Button type="submit" variant="primary" fullWidth>
                 Ajouter le ticket
-              </button>
+              </Button>
             </form>
           </div>
           
@@ -295,7 +309,9 @@ const ModernHome: NextPage = () => {
                 id={ticket.id}
                 title={ticket.title}
                 color={ticket.color}
-                technician={ticket.technician}
+                technician_id={ticket.technician_id}
+                technician_name={ticket.technician_name}
+                technician_color={ticket.technician_color}
                 onDragStart={handleDragStart}
               />
             ))}
@@ -354,16 +370,21 @@ const ModernHome: NextPage = () => {
             
             <div className={styles.filterSection}>
               <label className={styles.filterLabel}>Technicien:</label>
-              <select 
-                value={selectedTechnician}
-                onChange={(e) => setSelectedTechnician(e.target.value)}
-                className={`modern-select ${styles.technicianFilter}`}
-              >
-                <option value="Tous">Tous les techniciens</option>
-                {TECHNICIANS.map(tech => (
-                  <option key={tech} value={tech}>{tech}</option>
-                ))}
-              </select>
+              <div style={{ minWidth: '200px' }}>
+                <Input
+                  variant="select"
+                  value={selectedTechnicianId || ''}
+                  onChange={(e) => setSelectedTechnicianId(e.target.value ? parseInt(e.target.value) : null)}
+                  options={[
+                    { value: '', label: 'Tous les techniciens' },
+                    ...technicians.filter(tech => tech.is_active).map(tech => ({
+                      value: tech.id.toString(),
+                      label: tech.name
+                    }))
+                  ]}
+                  fullWidth
+                />
+              </div>
             </div>
           </div>
           
@@ -379,6 +400,8 @@ const ModernHome: NextPage = () => {
                 onPreviousMonth={goToPreviousMonth}
                 onNextMonth={goToNextMonth}
                 onToday={goToToday}
+                schedules={schedules}
+                selectedTechnicianId={selectedTechnicianId}
               />
             )}
             
@@ -392,6 +415,8 @@ const ModernHome: NextPage = () => {
                 onPreviousWeek={goToPreviousWeek}
                 onNextWeek={goToNextWeek}
                 onToday={goToToday}
+                schedules={schedules}
+                selectedTechnicianId={selectedTechnicianId}
               />
             )}
             
@@ -405,6 +430,8 @@ const ModernHome: NextPage = () => {
                 onPreviousDay={goToPreviousDay}
                 onNextDay={goToNextDay}
                 onToday={goToToday}
+                schedules={schedules}
+                selectedTechnicianId={selectedTechnicianId}
               />
             )}
           </div>

@@ -1,0 +1,118 @@
+.emptyCell {
+  min-height: 60px;
+  background: #f9f9f9;
+  border: 1px dashed #ddd;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.emptyCell:hover {
+  background: #f0f0f0;
+  border-color: #bbb;
+}
+
+.addButton {
+  color: #999;
+  transition: all 0.2s ease;
+}
+
+.emptyCell:hover .addButton {
+  color: #666;
+  transform: scale(1.1);
+}
+
+.scheduleCell {
+  min-height: 60px;
+  padding: 0.75rem;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-left: 4px solid;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.scheduleCell:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.timeRange {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.typeLabel {
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.notes {
+  font-size: 0.75rem;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 0.25rem;
+}
+
+.deleteButton {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.scheduleCell:hover .deleteButton {
+  opacity: 1;
+}
+
+.deleteButton:hover {
+  background: #fff5f5;
+  color: #dc3545;
+  transform: scale(1.1);
+}
+
+.deleteButton svg {
+  width: 14px;
+  height: 14px;
+}
+
+@media (max-width: 768px) {
+  .scheduleCell {
+    padding: 0.5rem;
+    min-height: 50px;
+  }
+
+  .timeRange {
+    font-size: 0.85rem;
+  }
+
+  .typeLabel {
+    font-size: 0.75rem;
+  }
+
+  .deleteButton {
+    opacity: 1;
+  }
+}

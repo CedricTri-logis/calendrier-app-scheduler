@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import styles from './ModernDayView.module.css'
 import ModernTicket from './ModernTicket'
+import { Schedule } from '../hooks/useSchedules'
+import { isHourAvailable } from '../utils/scheduleHelpers'
 
 interface ModernDayViewProps {
   droppedTickets: { [key: string]: any[] }
@@ -11,6 +13,8 @@ interface ModernDayViewProps {
   onPreviousDay: () => void
   onNextDay: () => void
   onToday: () => void
+  schedules: Schedule[]
+  selectedTechnicianId: number | null
 }
 
 const ModernDayView: React.FC<ModernDayViewProps> = ({
@@ -21,7 +25,9 @@ const ModernDayView: React.FC<ModernDayViewProps> = ({
   currentDate,
   onPreviousDay,
   onNextDay,
-  onToday
+  onToday,
+  schedules,
+  selectedTechnicianId
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date())
   
@@ -34,8 +40,8 @@ const ModernDayView: React.FC<ModernDayViewProps> = ({
     return () => clearInterval(timer)
   }, [])
   
-  // Heures de la journée (0h à 23h)
-  const hours = Array.from({ length: 24 }, (_, i) => i)
+  // Heures de la journée (7h à 18h)
+  const hours = Array.from({ length: 12 }, (_, i) => i + 7)
   
   // Formater la date pour l'affichage
   const formatDate = (date: Date) => {
@@ -123,7 +129,9 @@ const ModernDayView: React.FC<ModernDayViewProps> = ({
                 id={ticket.id}
                 title={ticket.title}
                 color={ticket.color}
-                technician={ticket.technician}
+                technician_id={ticket.technician_id}
+                technician_name={ticket.technician_name}
+                technician_color={ticket.technician_color}
                 onDragStart={onDragStart}
               />
             ))}
@@ -149,6 +157,7 @@ const ModernDayView: React.FC<ModernDayViewProps> = ({
         {/* Heures et slots */}
         {hours.map((hour) => {
           const hourTickets = todayTickets.filter(ticket => ticket.hour === hour)
+          const isAvailable = isHourAvailable(hour, getDateKey(), schedules, selectedTechnicianId)
           
           return (
             <div key={hour} className={styles.hourRow}>
@@ -156,9 +165,9 @@ const ModernDayView: React.FC<ModernDayViewProps> = ({
                 {formatHour(hour)}
               </div>
               <div 
-                className={styles.hourContent}
-                onDrop={(e) => handleDrop(e, hour)}
-                onDragOver={onDragOver}
+                className={`${styles.hourContent} ${!isAvailable ? styles.unavailable : ''}`}
+                onDrop={isAvailable ? (e) => handleDrop(e, hour) : undefined}
+                onDragOver={isAvailable ? onDragOver : undefined}
               >
                 {hourTickets.map((ticket) => (
                   <ModernTicket
@@ -166,7 +175,9 @@ const ModernDayView: React.FC<ModernDayViewProps> = ({
                     id={ticket.id}
                     title={ticket.title}
                     color={ticket.color}
-                    technician={ticket.technician}
+                    technician_id={ticket.technician_id}
+                    technician_name={ticket.technician_name}
+                    technician_color={ticket.technician_color}
                     onDragStart={onDragStart}
                   />
                 ))}

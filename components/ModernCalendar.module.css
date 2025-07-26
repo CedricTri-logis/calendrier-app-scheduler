@@ -96,6 +96,30 @@
   font-weight: 500;
   color: var(--text-primary);
   line-height: 1.5;
+  position: relative;
+}
+
+/* Indicateur de disponibilité */
+.availabilityIndicator {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 6px;
+  height: 6px;
+  background-color: var(--success-green);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 0 2px var(--bg-primary);
+}
+
+/* Cellules non disponibles */
+.dayCell.unavailable {
+  background-color: var(--gray-100);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.dayCell.unavailable:hover {
+  background-color: var(--gray-100);
 }
 
 /* Day Content */

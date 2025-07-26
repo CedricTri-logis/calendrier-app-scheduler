@@ -1,18 +1,32 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import type { Ticket } from '../lib/supabase'
+
+// Interface étendue pour les tickets avec infos technicien
+export interface TicketWithTechnician {
+  id: number
+  title: string
+  color: string
+  date: string | null
+  hour: number | null
+  technician_id: number | null
+  technician_name?: string | null
+  technician_color?: string | null
+  technician_active?: boolean | null
+  created_at: string
+  updated_at: string
+}
 
 export function useTickets() {
-  const [tickets, setTickets] = useState<Ticket[]>([])
+  const [tickets, setTickets] = useState<TicketWithTechnician[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Charger tous les tickets
+  // Charger tous les tickets avec les infos technicien
   const fetchTickets = async () => {
     try {
       setLoading(true)
       const { data, error } = await supabase
-        .from('tickets')
+        .from('tickets_with_technician')
         .select('*')
         .order('created_at', { ascending: false })
 
@@ -27,17 +41,30 @@ export function useTickets() {
   }
 
   // Créer un nouveau ticket
-  const createTicket = async (title: string, color: string, technician?: string) => {
+  const createTicket = async (title: string, color: string, technicianId?: number) => {
     try {
+      // Si pas de technicien spécifié, utiliser "Non assigné"
+      let technician_id = technicianId
+      if (!technician_id) {
+        const { data: nonAssigneTech } = await supabase
+          .from('technicians')
+          .select('id')
+          .eq('name', 'Non assigné')
+          .single()
+        
+        technician_id = nonAssigneTech?.id || null
+      }
+
       const { data, error } = await supabase
         .from('tickets')
-        .insert([{ title, color, technician: technician || null }])
+        .insert([{ title, color, technician_id }])
         .select()
         .single()
 
       if (error) throw error
 
-      setTickets(prev => [data, ...prev])
+      // Recharger pour avoir les infos du technicien
+      await fetchTickets()
       return data
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur lors de la création du ticket')
@@ -46,14 +73,14 @@ export function useTickets() {
   }
 
   // Mettre à jour la position d'un ticket (et optionnellement le technicien)
-  const updateTicketPosition = async (id: number, date: string | null, hour: number = -1, technician?: string) => {
+  const updateTicketPosition = async (id: number, date: string | null, hour: number = -1, technicianId?: number) => {
     try {
       // Préparer les données à mettre à jour
       const updateData: any = { date, hour }
       
       // Si un technicien est fourni, l'inclure dans la mise à jour
-      if (technician !== undefined) {
-        updateData.technician = technician
+      if (technicianId !== undefined) {
+        updateData.technician_id = technicianId
       }
       
       const { error } = await supabase
@@ -63,14 +90,8 @@ export function useTickets() {
 
       if (error) throw error
 
-      // Mettre à jour l'état local
-      setTickets(prev => 
-        prev.map(ticket => 
-          ticket.id === id 
-            ? { ...ticket, ...updateData } 
-            : ticket
-        )
-      )
+      // Recharger pour avoir les infos mises à jour du technicien
+      await fetchTickets()
 
       return true
     } catch (err) {

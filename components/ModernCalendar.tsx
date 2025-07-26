@@ -1,6 +1,8 @@
 import React from 'react'
 import styles from './ModernCalendar.module.css'
 import ModernTicket from './ModernTicket'
+import { Schedule } from '../hooks/useSchedules'
+import { hasAvailability } from '../utils/scheduleHelpers'
 
 interface ModernCalendarProps {
   droppedTickets: { [key: string]: any[] }
@@ -11,6 +13,8 @@ interface ModernCalendarProps {
   onPreviousMonth: () => void
   onNextMonth: () => void
   onToday: () => void
+  schedules: Schedule[]
+  selectedTechnicianId: number | null
 }
 
 const ModernCalendar: React.FC<ModernCalendarProps> = ({ 
@@ -21,7 +25,9 @@ const ModernCalendar: React.FC<ModernCalendarProps> = ({
   currentDate,
   onPreviousMonth,
   onNextMonth,
-  onToday
+  onToday,
+  schedules,
+  selectedTechnicianId
 }) => {
   // Jours de la semaine
   const daysOfWeek = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
@@ -120,6 +126,7 @@ const ModernCalendar: React.FC<ModernCalendarProps> = ({
             : null
           const dayTickets = dateKey ? (droppedTickets[dateKey] || []) : []
           const hasTickets = dayTickets.length > 0
+          const hasSchedule = dateKey ? hasAvailability(dateKey, schedules, selectedTechnicianId) : false
           
           return (
             <div 
@@ -129,12 +136,16 @@ const ModernCalendar: React.FC<ModernCalendarProps> = ({
                 ${!isCurrentMonth ? styles.otherMonth : ''} 
                 ${isCurrentMonth && isToday(day) ? styles.today : ''}
                 ${hasTickets ? styles.hasEvents : ''}
+                ${isCurrentMonth && !hasSchedule ? styles.unavailable : ''}
               `}
-              onDrop={isCurrentMonth ? (e) => handleDrop(e, day) : undefined}
-              onDragOver={isCurrentMonth ? onDragOver : undefined}
+              onDrop={isCurrentMonth && hasSchedule ? (e) => handleDrop(e, day) : undefined}
+              onDragOver={isCurrentMonth && hasSchedule ? onDragOver : undefined}
             >
               <div className={styles.dayNumber}>
                 {day}
+                {isCurrentMonth && hasSchedule && (
+                  <div className={styles.availabilityIndicator}></div>
+                )}
               </div>
               
               {isCurrentMonth && (
@@ -145,7 +156,9 @@ const ModernCalendar: React.FC<ModernCalendarProps> = ({
                       id={ticket.id}
                       title={ticket.title}
                       color={ticket.color}
-                      technician={ticket.technician}
+                      technician_id={ticket.technician_id}
+                      technician_name={ticket.technician_name}
+                      technician_color={ticket.technician_color}
                       onDragStart={onDragStart}
                       isCompact={true}
                     />

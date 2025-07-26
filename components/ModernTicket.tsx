@@ -5,7 +5,9 @@ interface ModernTicketProps {
   id: number
   title: string
   color: string
-  technician?: string | null
+  technician_id?: number | null
+  technician_name?: string | null
+  technician_color?: string | null
   onDragStart: (e: React.DragEvent, ticketId: number) => void
   isCompact?: boolean
 }
@@ -14,7 +16,9 @@ const ModernTicket: React.FC<ModernTicketProps> = ({
   id, 
   title, 
   color, 
-  technician,
+  technician_id,
+  technician_name,
+  technician_color,
   onDragStart,
   isCompact = false
 }) => {
@@ -23,7 +27,9 @@ const ModernTicket: React.FC<ModernTicketProps> = ({
       id,
       title,
       color,
-      technician
+      technician_id,
+      technician_name,
+      technician_color
     }
     e.dataTransfer.setData('ticket', JSON.stringify(ticketData))
     onDragStart(e, id)
@@ -56,10 +62,10 @@ const ModernTicket: React.FC<ModernTicketProps> = ({
     >
       <div className={styles.ticketContent}>
         <div className={styles.ticketTitle}>{title}</div>
-        {technician && technician !== 'Non assigné' && !isCompact && (
-          <div className={styles.ticketTechnician}>
+        {technician_name && technician_name !== 'Non assigné' && !isCompact && (
+          <div className={styles.ticketTechnician} style={technician_color ? { color: technician_color } : undefined}>
             <span className={styles.technicianIcon}>👤</span>
-            {technician}
+            {technician_name}
           </div>
         )}
       </div>

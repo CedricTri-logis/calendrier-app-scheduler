@@ -1,0 +1,155 @@
+/* Modern Card Component Styles */
+
+.card {
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: all var(--transition-base);
+}
+
+.card:hover.hoverable {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Padding variants */
+.noPadding {
+  padding: 0;
+}
+
+.small {
+  padding: var(--spacing-md);
+}
+
+.medium {
+  padding: var(--spacing-lg);
+}
+
+.large {
+  padding: var(--spacing-xl);
+}
+
+/* Border variants */
+.bordered {
+  border: 1px solid var(--border-color);
+}
+
+.noBorder {
+  border: none;
+}
+
+/* Shadow variants */
+.noShadow {
+  box-shadow: none;
+}
+
+.shadowSmall {
+  box-shadow: var(--shadow-sm);
+}
+
+.shadowMedium {
+  box-shadow: var(--shadow-md);
+}
+
+.shadowLarge {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Interactive states */
+.clickable {
+  cursor: pointer;
+}
+
+.selected {
+  border: 2px solid var(--primary-blue);
+  background-color: var(--primary-blue-light);
+}
+
+/* Card sections */
+.header {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--border-light);
+  background-color: var(--bg-secondary);
+}
+
+.header.compact {
+  padding: var(--spacing-md);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.body {
+  padding: var(--spacing-lg);
+}
+
+.body.noPadding {
+  padding: 0;
+}
+
+.footer {
+  padding: var(--spacing-lg);
+  border-top: 1px solid var(--border-light);
+  background-color: var(--bg-secondary);
+}
+
+.footer.compact {
+  padding: var(--spacing-md);
+}
+
+/* Card grid */
+.grid {
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
+.grid2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .grid4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .grid3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .grid2,
+  .grid3,
+  .grid4 {
+    grid-template-columns: 1fr;
+  }
+  
+  .header,
+  .footer {
+    padding: var(--spacing-md);
+  }
+  
+  .body {
+    padding: var(--spacing-md);
+  }
+}

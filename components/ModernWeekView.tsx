@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import styles from './ModernWeekView.module.css'
 import ModernTicket from './ModernTicket'
+import { Schedule } from '../hooks/useSchedules'
+import { isHourAvailable } from '../utils/scheduleHelpers'
 
 interface ModernWeekViewProps {
   droppedTickets: { [key: string]: any[] }
@@ -11,6 +13,8 @@ interface ModernWeekViewProps {
   onPreviousWeek: () => void
   onNextWeek: () => void
   onToday: () => void
+  schedules: Schedule[]
+  selectedTechnicianId: number | null
 }
 
 const ModernWeekView: React.FC<ModernWeekViewProps> = ({
@@ -21,7 +25,9 @@ const ModernWeekView: React.FC<ModernWeekViewProps> = ({
   currentDate,
   onPreviousWeek,
   onNextWeek,
-  onToday
+  onToday,
+  schedules,
+  selectedTechnicianId
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date())
   
@@ -38,8 +44,8 @@ const ModernWeekView: React.FC<ModernWeekViewProps> = ({
   const daysOfWeek = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
   const daysOfWeekShort = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
   
-  // Heures de la journée (0h à 23h)
-  const hours = Array.from({ length: 24 }, (_, i) => i)
+  // Heures de la journée (7h à 18h)
+  const hours = Array.from({ length: 12 }, (_, i) => i + 7)
   
   // Obtenir le lundi de la semaine actuelle
   const getMonday = (date: Date) => {
@@ -135,7 +141,9 @@ const ModernWeekView: React.FC<ModernWeekViewProps> = ({
                   id={ticket.id}
                   title={ticket.title}
                   color={ticket.color}
-                  technician={ticket.technician}
+                  technician_id={ticket.technician_id}
+                  technician_name={ticket.technician_name}
+                  technician_color={ticket.technician_color}
                   onDragStart={onDragStart}
                   isCompact={true}
                 />
@@ -178,13 +186,14 @@ const ModernWeekView: React.FC<ModernWeekViewProps> = ({
             >
               {hours.map((hour) => {
                 const hourTickets = dayTickets.filter(ticket => ticket.hour === hour)
+                const isAvailable = isHourAvailable(hour, dateKey, schedules, selectedTechnicianId)
                 
                 return (
                   <div
                     key={hour}
-                    className={styles.hourCell}
-                    onDrop={(e) => handleDrop(e, date, hour)}
-                    onDragOver={onDragOver}
+                    className={`${styles.hourCell} ${!isAvailable ? styles.unavailable : ''}`}
+                    onDrop={isAvailable ? (e) => handleDrop(e, date, hour) : undefined}
+                    onDragOver={isAvailable ? onDragOver : undefined}
                   >
                     {hourTickets.map((ticket) => (
                       <div key={ticket.id} className={styles.eventWrapper}>
@@ -192,7 +201,9 @@ const ModernWeekView: React.FC<ModernWeekViewProps> = ({
                           id={ticket.id}
                           title={ticket.title}
                           color={ticket.color}
-                          technician={ticket.technician}
+                          technician_id={ticket.technician_id}
+                          technician_name={ticket.technician_name}
+                          technician_color={ticket.technician_color}
                           onDragStart={onDragStart}
                           isCompact={true}
                         />
