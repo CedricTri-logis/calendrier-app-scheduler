@@ -37,7 +37,7 @@ const Home: NextPage = () => {
   // Filtrer les tickets selon le technicien sélectionné (pour le calendrier uniquement)
   const filteredTicketsForCalendar = selectedTechnician === "Tous" 
     ? tickets 
-    : tickets.filter(ticket => ticket.technician === selectedTechnician);
+    : tickets.filter(ticket => ticket.technician_name === selectedTechnician);
   
   // Organiser les tickets placés par date (avec filtre)
   const ticketsByDate = filteredTicketsForCalendar.reduce((acc, ticket) => {
@@ -79,7 +79,7 @@ const Home: NextPage = () => {
     
     // Si un technicien est sélectionné et que ce n'est pas "Tous", 
     // assigner automatiquement le ticket à ce technicien
-    const technicianToAssign = selectedTechnician !== "Tous" ? selectedTechnician : ticket.technician;
+    const technicianToAssign = selectedTechnician !== "Tous" ? selectedTechnician : ticket.technician_name;
     
     // Mettre à jour dans Supabase avec le technicien
     await updateTicketPosition(ticket.id, dateString, hour, technicianToAssign);
@@ -270,7 +270,7 @@ const Home: NextPage = () => {
                   id={ticket.id}
                   title={ticket.title}
                   color={ticket.color}
-                  technician={ticket.technician}
+                  technician={ticket.technician_name}
                   onDragStart={handleDragStart}
                 />
               ))}
