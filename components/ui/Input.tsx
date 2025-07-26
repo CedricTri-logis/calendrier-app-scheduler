@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react'
 import styles from '../../styles/components/Input.module.css'
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>, 'size'> {
   label?: string
   error?: string
   helperText?: string
@@ -13,6 +13,9 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement |
   iconRight?: React.ReactNode
   success?: boolean
   options?: Array<{ value: string; label: string }>
+  // Textarea specific props
+  rows?: number
+  cols?: number
 }
 
 const Input = forwardRef<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement, InputProps>(({
