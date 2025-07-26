@@ -5,19 +5,21 @@ import ModernTicket from "../components/ModernTicket"
 import ModernCalendar from "../components/ModernCalendar"
 import ModernWeekView from "../components/ModernWeekView"
 import ModernDayView from "../components/ModernDayView"
+import TechnicianQuickAdd from "../components/TechnicianQuickAdd"
 import { useState } from "react"
 import { useTickets } from "../hooks/useTickets"
 import { useTechnicians } from "../hooks/useTechnicians"
 import { useSchedules } from "../hooks/useSchedules"
 import { formatDateForDB } from "../utils/dateHelpers"
-import { getAvailableDates } from "../utils/scheduleHelpers"
+import { getAvailableDates, isHourAvailable, getDateAvailabilityStatus } from "../utils/scheduleHelpers"
+import { filterTicketsByTechnician } from "../utils/ticketHelpers"
 import Button from "../components/ui/Button"
 import Input from "../components/ui/Input"
 import { LoadingContainer, SpinnerOverlay } from "../components/ui/Spinner"
 
 const ModernHome: NextPage = () => {
   // Hook Supabase pour gérer les tickets
-  const { tickets, loading, error, createTicket, updateTicketPosition, removeTicketFromCalendar } = useTickets()
+  const { tickets, loading, error, createTicket, updateTicketPosition, removeTicketFromCalendar, deleteTicket, addTechnicianToTicket, removeTechnicianFromTicket } = useTickets()
   
   // Hook Supabase pour gérer les techniciens
   const { technicians, loading: loadingTechnicians } = useTechnicians()
@@ -41,14 +43,19 @@ const ModernHome: NextPage = () => {
   
   // État pour le survol de la zone de retrait
   const [isDraggingOver, setIsDraggingOver] = useState(false)
+  
+  // État pour le popup d'ajout de technicien
+  const [technicianAddPopup, setTechnicianAddPopup] = useState<{
+    ticketId: number
+    position: { x: number; y: number }
+    currentTechnicianIds: number[]
+  } | null>(null)
 
   // Filtrer les tickets pour obtenir ceux qui ne sont pas placés (sans filtre)
   const unplacedTickets = tickets.filter(ticket => !ticket.date)
   
   // Filtrer les tickets selon le technicien sélectionné (pour le calendrier uniquement)
-  const filteredTicketsForCalendar = selectedTechnicianId === null 
-    ? tickets 
-    : tickets.filter(ticket => ticket.technician_id === selectedTechnicianId)
+  const filteredTicketsForCalendar = filterTicketsByTechnician(tickets, selectedTechnicianId)
   
   // Organiser les tickets placés par date (avec filtre)
   const ticketsByDate = filteredTicketsForCalendar.reduce((acc, ticket) => {
@@ -90,6 +97,31 @@ const ModernHome: NextPage = () => {
     
     // Si un technicien est sélectionné, assigner automatiquement le ticket à ce technicien
     const technicianIdToAssign = selectedTechnicianId !== null ? selectedTechnicianId : ticket.technician_id
+    
+    // Vérifier la disponibilité
+    const availabilityStatus = getDateAvailabilityStatus(dateString, schedules, technicianIdToAssign)
+    
+    if (availabilityStatus === 'unavailable') {
+      alert('Ce technicien n\'est pas disponible à cette date.')
+      return
+    }
+    
+    // Si une heure spécifique est définie, vérifier la disponibilité horaire
+    if (hour !== -1 && technicianIdToAssign) {
+      const isAvailable = isHourAvailable(hour, dateString, schedules, technicianIdToAssign)
+      if (!isAvailable) {
+        alert(`Ce technicien n'est pas disponible à ${hour}h00 le ${dropDate.toLocaleDateString('fr-FR')}.`)
+        return
+      }
+    }
+    
+    // Si partiellement disponible, avertir l'utilisateur
+    if (availabilityStatus === 'partial' && technicianIdToAssign) {
+      const technicianName = technicians.find(t => t.id === technicianIdToAssign)?.name || 'Ce technicien'
+      if (!confirm(`${technicianName} a une disponibilité limitée à cette date. Voulez-vous continuer ?`)) {
+        return
+      }
+    }
     
     // Mettre à jour dans Supabase avec le technicien
     await updateTicketPosition(ticket.id, dateString, hour, technicianIdToAssign)
@@ -153,6 +185,80 @@ const ModernHome: NextPage = () => {
   // Aller à aujourd'hui
   const goToToday = () => {
     setCurrentDate(new Date())
+  }
+  
+  // Gestion de l'ajout de technicien
+  const handleAddTechnician = (ticketId: number) => {
+    const ticket = tickets.find(t => t.id === ticketId)
+    if (!ticket) return
+    
+    // Obtenir les IDs des techniciens actuels
+    const currentTechnicianIds = ticket.technicians?.map(t => t.id) || []
+    if (ticket.technician_id && !currentTechnicianIds.includes(ticket.technician_id)) {
+      currentTechnicianIds.push(ticket.technician_id)
+    }
+    
+    // Obtenir la position pour le popup (centre de l'écran)
+    const position = { x: window.innerWidth / 2 - 200, y: window.innerHeight / 2 - 200 }
+    
+    setTechnicianAddPopup({
+      ticketId,
+      position,
+      currentTechnicianIds
+    })
+  }
+  
+  // Gestion du retrait de technicien
+  const handleRemoveTechnician = async (ticketId: number, technicianId: number) => {
+    const result = await removeTechnicianFromTicket(ticketId, technicianId)
+    if (!result.success) {
+      alert(`Erreur lors du retrait du technicien: ${result.error}`)
+    }
+  }
+  
+  // Gestion de la sélection de technicien dans le popup
+  const handleSelectTechnician = async (technicianId: number) => {
+    if (!technicianAddPopup) return
+    
+    // Trouver le ticket
+    const ticket = tickets.find(t => t.id === technicianAddPopup.ticketId)
+    if (!ticket || !ticket.date) {
+      alert('Erreur: Ticket introuvable ou non planifié')
+      setTechnicianAddPopup(null)
+      return
+    }
+    
+    // Vérifier la disponibilité du technicien
+    const availabilityStatus = getDateAvailabilityStatus(ticket.date, schedules, technicianId)
+    
+    if (availabilityStatus === 'unavailable') {
+      alert('Ce technicien n\'est pas disponible à cette date.')
+      return
+    }
+    
+    // Si une heure spécifique est définie, vérifier la disponibilité horaire
+    if (ticket.hour !== null && ticket.hour !== -1) {
+      const isAvailable = isHourAvailable(ticket.hour, ticket.date, schedules, technicianId)
+      if (!isAvailable) {
+        alert(`Ce technicien n'est pas disponible à ${ticket.hour}h00 le ${new Date(ticket.date).toLocaleDateString('fr-FR')}.`)
+        return
+      }
+    }
+    
+    // Si partiellement disponible, avertir l'utilisateur
+    if (availabilityStatus === 'partial') {
+      const technicianName = technicians.find(t => t.id === technicianId)?.name || 'Ce technicien'
+      if (!confirm(`${technicianName} a une disponibilité limitée à cette date. Voulez-vous continuer ?`)) {
+        return
+      }
+    }
+    
+    const result = await addTechnicianToTicket(technicianAddPopup.ticketId, technicianId, false)
+    if (!result.success) {
+      alert(`Erreur lors de l'ajout du technicien: ${result.error}`)
+    }
+    
+    setTechnicianAddPopup(null)
   }
   
   // Obtenir le titre de navigation
@@ -271,10 +377,18 @@ const ModernHome: NextPage = () => {
                 onChange={(e) => setNewTicketTechnicianId(e.target.value ? parseInt(e.target.value) : null)}
                 options={[
                   { value: '', label: 'Non assigné' },
-                  ...technicians.filter(tech => tech.is_active).map(tech => ({
-                    value: tech.id.toString(),
-                    label: tech.name
-                  }))
+                  ...technicians.filter(tech => tech.is_active).map(tech => {
+                    const todayKey = formatDateForDB(new Date())
+                    const todayStatus = getDateAvailabilityStatus(todayKey, schedules, tech.id)
+                    let statusEmoji = ''
+                    if (todayStatus === 'available') statusEmoji = '✅ '
+                    else if (todayStatus === 'partial') statusEmoji = '⚡ '
+                    else if (todayStatus === 'unavailable') statusEmoji = '🚫 '
+                    return {
+                      value: tech.id.toString(),
+                      label: `${statusEmoji}${tech.name}`
+                    }
+                  })
                 ]}
                 fullWidth
               />
@@ -312,7 +426,13 @@ const ModernHome: NextPage = () => {
                 technician_id={ticket.technician_id}
                 technician_name={ticket.technician_name}
                 technician_color={ticket.technician_color}
+                technicians={ticket.technicians}
                 onDragStart={handleDragStart}
+                onAddTechnician={(ticketId) => handleAddTechnician(ticketId)}
+                onRemoveTechnician={handleRemoveTechnician}
+                onDeleteTicket={deleteTicket}
+                showActions={true}
+                isPlanned={false}
               />
             ))}
           </div>
@@ -377,13 +497,52 @@ const ModernHome: NextPage = () => {
                   onChange={(e) => setSelectedTechnicianId(e.target.value ? parseInt(e.target.value) : null)}
                   options={[
                     { value: '', label: 'Tous les techniciens' },
-                    ...technicians.filter(tech => tech.is_active).map(tech => ({
-                      value: tech.id.toString(),
-                      label: tech.name
-                    }))
+                    ...technicians.filter(tech => tech.is_active).map(tech => {
+                      const todayKey = formatDateForDB(new Date())
+                      const todayStatus = getDateAvailabilityStatus(todayKey, schedules, tech.id)
+                      let statusEmoji = ''
+                      if (todayStatus === 'available') statusEmoji = '✅ '
+                      else if (todayStatus === 'partial') statusEmoji = '⚡ '
+                      else if (todayStatus === 'unavailable') statusEmoji = '🚫 '
+                      return {
+                        value: tech.id.toString(),
+                        label: `${statusEmoji}${tech.name}`
+                      }
+                    })
                   ]}
                   fullWidth
                 />
+              </div>
+            </div>
+          </div>
+          
+          {/* Légende des disponibilités */}
+          <div className={styles.availabilityLegend}>
+            <span className={styles.legendTitle}>Légende:</span>
+            <div className={styles.legendItems}>
+              <div className={styles.legendItem}>
+                <span className={styles.legendIcon} style={{ backgroundColor: 'var(--success-green)' }}>✓</span>
+                <span className={styles.legendText}>Disponible</span>
+              </div>
+              <div className={styles.legendItem}>
+                <span className={styles.legendIcon} style={{ backgroundColor: 'var(--warning-orange)' }}>⚡</span>
+                <span className={styles.legendText}>Partiellement</span>
+              </div>
+              <div className={styles.legendItem}>
+                <span className={styles.legendIcon} style={{ backgroundColor: '#60a5fa' }}>🏖️</span>
+                <span className={styles.legendText}>Vacances</span>
+              </div>
+              <div className={styles.legendItem}>
+                <span className={styles.legendIcon} style={{ backgroundColor: '#fb923c' }}>🏥</span>
+                <span className={styles.legendText}>Congé maladie</span>
+              </div>
+              <div className={styles.legendItem}>
+                <span className={styles.legendIcon} style={{ backgroundColor: '#a78bfa' }}>☕</span>
+                <span className={styles.legendText}>Pause</span>
+              </div>
+              <div className={styles.legendItem}>
+                <span className={styles.legendIcon} style={{ backgroundColor: '#f87171' }}>🚫</span>
+                <span className={styles.legendText}>Indisponible</span>
               </div>
             </div>
           </div>
@@ -402,6 +561,8 @@ const ModernHome: NextPage = () => {
                 onToday={goToToday}
                 schedules={schedules}
                 selectedTechnicianId={selectedTechnicianId}
+                onAddTechnician={handleAddTechnician}
+                onRemoveTechnician={handleRemoveTechnician}
               />
             )}
             
@@ -417,6 +578,8 @@ const ModernHome: NextPage = () => {
                 onToday={goToToday}
                 schedules={schedules}
                 selectedTechnicianId={selectedTechnicianId}
+                onAddTechnician={handleAddTechnician}
+                onRemoveTechnician={handleRemoveTechnician}
               />
             )}
             
@@ -432,11 +595,26 @@ const ModernHome: NextPage = () => {
                 onToday={goToToday}
                 schedules={schedules}
                 selectedTechnicianId={selectedTechnicianId}
+                onAddTechnician={handleAddTechnician}
+                onRemoveTechnician={handleRemoveTechnician}
               />
             )}
           </div>
         </div>
       </main>
+      
+      {/* Popup d'ajout de technicien */}
+      {technicianAddPopup && (
+        <TechnicianQuickAdd
+          ticketId={technicianAddPopup.ticketId}
+          ticketDate={tickets.find(t => t.id === technicianAddPopup.ticketId)?.date}
+          ticketHour={tickets.find(t => t.id === technicianAddPopup.ticketId)?.hour}
+          currentTechnicianIds={technicianAddPopup.currentTechnicianIds}
+          position={technicianAddPopup.position}
+          onSelect={handleSelectTechnician}
+          onClose={() => setTechnicianAddPopup(null)}
+        />
+      )}
     </div>
   )
 }

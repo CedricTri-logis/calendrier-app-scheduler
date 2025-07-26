@@ -36,6 +36,8 @@
   
   /* Status Colors */
   --success-green: #34a853;
+  --warning-orange: #fbbc04;
+  --error-red: #ea4335;
   
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);

@@ -2,7 +2,13 @@ import React from 'react'
 import styles from './ModernCalendar.module.css'
 import ModernTicket from './ModernTicket'
 import { Schedule } from '../hooks/useSchedules'
-import { hasAvailability } from '../utils/scheduleHelpers'
+import { 
+  hasAvailability, 
+  getDateAvailabilityStatus, 
+  getUnavailabilityTypes,
+  getScheduleTypeLabel,
+  getScheduleTypeColor 
+} from '../utils/scheduleHelpers'
 
 interface ModernCalendarProps {
   droppedTickets: { [key: string]: any[] }
@@ -15,6 +21,8 @@ interface ModernCalendarProps {
   onToday: () => void
   schedules: Schedule[]
   selectedTechnicianId: number | null
+  onAddTechnician?: (ticketId: number) => void
+  onRemoveTechnician?: (ticketId: number, technicianId: number) => void
 }
 
 const ModernCalendar: React.FC<ModernCalendarProps> = ({ 
@@ -27,7 +35,9 @@ const ModernCalendar: React.FC<ModernCalendarProps> = ({
   onNextMonth,
   onToday,
   schedules,
-  selectedTechnicianId
+  selectedTechnicianId,
+  onAddTechnician,
+  onRemoveTechnician
 }) => {
   // Jours de la semaine
   const daysOfWeek = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
@@ -126,7 +136,9 @@ const ModernCalendar: React.FC<ModernCalendarProps> = ({
             : null
           const dayTickets = dateKey ? (droppedTickets[dateKey] || []) : []
           const hasTickets = dayTickets.length > 0
-          const hasSchedule = dateKey ? hasAvailability(dateKey, schedules, selectedTechnicianId) : false
+          const availabilityStatus = dateKey ? getDateAvailabilityStatus(dateKey, schedules, selectedTechnicianId) : 'unknown'
+          const unavailabilityTypes = dateKey ? getUnavailabilityTypes(dateKey, schedules, selectedTechnicianId) : []
+          const canDrop = isCurrentMonth && (availabilityStatus === 'available' || availabilityStatus === 'partial')
           
           return (
             <div 
@@ -136,15 +148,36 @@ const ModernCalendar: React.FC<ModernCalendarProps> = ({
                 ${!isCurrentMonth ? styles.otherMonth : ''} 
                 ${isCurrentMonth && isToday(day) ? styles.today : ''}
                 ${hasTickets ? styles.hasEvents : ''}
-                ${isCurrentMonth && !hasSchedule ? styles.unavailable : ''}
+                ${isCurrentMonth && availabilityStatus === 'unavailable' ? styles.unavailable : ''}
+                ${isCurrentMonth && availabilityStatus === 'partial' ? styles.partial : ''}
               `}
-              onDrop={isCurrentMonth && hasSchedule ? (e) => handleDrop(e, day) : undefined}
-              onDragOver={isCurrentMonth && hasSchedule ? onDragOver : undefined}
+              onDrop={canDrop ? (e) => handleDrop(e, day) : undefined}
+              onDragOver={canDrop ? onDragOver : undefined}
             >
               <div className={styles.dayNumber}>
                 {day}
-                {isCurrentMonth && hasSchedule && (
-                  <div className={styles.availabilityIndicator}></div>
+                {isCurrentMonth && availabilityStatus !== 'unknown' && (
+                  <div className={styles.availabilityBadges}>
+                    {availabilityStatus === 'available' && (
+                      <span className={styles.availableBadge} title="Disponible">✓</span>
+                    )}
+                    {availabilityStatus === 'partial' && (
+                      <span className={styles.partialBadge} title="Partiellement disponible">⚡</span>
+                    )}
+                    {unavailabilityTypes.map(type => (
+                      <span 
+                        key={type}
+                        className={styles.unavailabilityBadge}
+                        style={{ backgroundColor: getScheduleTypeColor(type) }}
+                        title={getScheduleTypeLabel(type)}
+                      >
+                        {type === 'vacation' && '🏖️'}
+                        {type === 'sick_leave' && '🏥'}
+                        {type === 'break' && '☕'}
+                        {type === 'unavailable' && '🚫'}
+                      </span>
+                    ))}
+                  </div>
                 )}
               </div>
               
@@ -159,8 +192,13 @@ const ModernCalendar: React.FC<ModernCalendarProps> = ({
                       technician_id={ticket.technician_id}
                       technician_name={ticket.technician_name}
                       technician_color={ticket.technician_color}
+                      technicians={ticket.technicians}
                       onDragStart={onDragStart}
+                      onAddTechnician={onAddTechnician}
+                      onRemoveTechnician={onRemoveTechnician}
                       isCompact={true}
+                      showActions={true}
+                      isPlanned={true}
                     />
                   ))}
                   {dayTickets.length > 3 && (

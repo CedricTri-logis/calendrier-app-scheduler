@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Z-Index Calendar</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .calendar {
+            background: white;
+            padding: 20px;
+        }
+        
+        .daysGrid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background-color: #e5e7eb;
+        }
+        
+        .dayCell {
+            background-color: white;
+            padding: 8px;
+            min-height: 100px;
+            position: relative;
+            overflow: visible; /* Important */
+        }
+        
+        .dayContent {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow: visible; /* Important */
+            position: relative;
+        }
+        
+        .ticket {
+            position: relative;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: grab;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border: 1px solid transparent;
+            min-height: 32px;
+            background-color: #fef3c7;
+            color: #92400e;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        
+        .ticket:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-color: #fde68a;
+            z-index: 20; /* Assurer que le ticket survolé est au-dessus */
+        }
+        
+        .actionButtons {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            display: flex;
+            gap: 4px;
+            z-index: 30; /* Plus élevé que le ticket */
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: auto;
+        }
+        
+        .ticket:hover .actionButtons {
+            opacity: 1;
+        }
+        
+        .actionButton {
+            width: 20px;
+            height: 20px;
+            border: none;
+            background-color: rgba(0, 0, 0, 0.1);
+            color: #92400e;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            padding: 0;
+        }
+        
+        .actionButton:hover {
+            background-color: rgba(0, 0, 0, 0.2);
+            transform: scale(1.1);
+        }
+        
+        .state {
+            margin-top: 20px;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Z-Index dans le calendrier</h1>
+    
+    <div class="calendar">
+        <div class="daysGrid">
+            <div class="dayCell">
+                <div class="dayContent">
+                    <div class="ticket" id="ticket1">
+                        <span>Ticket 1</span>
+                        <div class="actionButtons">
+                            <button class="actionButton">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="ticket" id="ticket2">
+                        <span>Ticket 2</span>
+                        <div class="actionButtons">
+                            <button class="actionButton">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dayCell">
+                <div class="dayContent">
+                    <div class="ticket" id="ticket3">
+                        <span>Ticket 3</span>
+                        <div class="actionButtons">
+                            <button class="actionButton">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="state" id="state">
+        <p>État: <span id="stateText">Pas de survol</span></p>
+        <p>Bouton visible: <span id="buttonVisible">Non</span></p>
+        <p>Z-index du bouton: <span id="buttonZIndex">-</span></p>
+    </div>
+    
+    <script>
+        const tickets = document.querySelectorAll('.ticket');
+        const stateText = document.getElementById('stateText');
+        const buttonVisible = document.getElementById('buttonVisible');
+        const buttonZIndex = document.getElementById('buttonZIndex');
+        
+        tickets.forEach((ticket, index) => {
+            ticket.addEventListener('mouseenter', () => {
+                stateText.textContent = `Survol ticket ${index + 1}`;
+                
+                const buttons = ticket.querySelector('.actionButtons');
+                const opacity = window.getComputedStyle(buttons).opacity;
+                const zIndex = window.getComputedStyle(buttons).zIndex;
+                
+                buttonVisible.textContent = opacity === '1' ? 'Oui' : 'Non';
+                buttonZIndex.textContent = zIndex;
+            });
+            
+            ticket.addEventListener('mouseleave', () => {
+                stateText.textContent = 'Pas de survol';
+                buttonVisible.textContent = 'Non';
+                buttonZIndex.textContent = '-';
+            });
+        });
+        
+        // Test des boutons
+        document.querySelectorAll('.actionButton').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                alert('Bouton cliqué!');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -68,6 +68,30 @@
   margin: 0 auto;
 }
 
+/* Availability Indicators */
+.availabilityIndicators {
+  margin-top: 4px;
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.unavailabilityIcon,
+.partialIcon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.partialIcon {
+  color: var(--warning-orange);
+}
+
+.dayHeader.unavailable {
+  background-color: #fef2f2;
+  opacity: 0.8;
+}
+
 /* All Day Row */
 .allDayRow {
   display: flex;

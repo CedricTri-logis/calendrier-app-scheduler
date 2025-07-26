@@ -1,0 +1,244 @@
+/* TechnicianQuickAdd Popup */
+
+.popup {
+  background-color: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--gray-200);
+  min-width: 320px;
+  max-width: 400px;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: popupIn 0.2s ease-out;
+}
+
+@keyframes popupIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.closeButton {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background-color: transparent;
+  color: var(--gray-500);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  line-height: 1;
+  transition: all var(--transition-fast);
+}
+
+.closeButton:hover {
+  background-color: var(--gray-100);
+  color: var(--gray-700);
+}
+
+.searchContainer {
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  transition: all var(--transition-fast);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.technicianList {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-sm);
+}
+
+.emptyState {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--gray-500);
+  font-size: 14px;
+}
+
+.technicianItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background-color: transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+  margin-bottom: 4px;
+}
+
+.technicianItem:hover:not(:disabled) {
+  background-color: var(--gray-50);
+  border-color: var(--gray-300);
+}
+
+.technicianItem:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.technicianItem.unavailable {
+  background-color: var(--red-50);
+}
+
+.technicianColor {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  border: 2px solid transparent;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.technicianName {
+  flex: 1;
+  font-weight: 500;
+  color: var(--gray-900);
+  font-size: 14px;
+}
+
+.availabilityBadge {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+}
+
+.availabilityBadge.available {
+  background-color: var(--green-100);
+  color: var(--green-800);
+}
+
+.availabilityBadge.partial {
+  background-color: var(--yellow-100);
+  color: var(--yellow-800);
+}
+
+.availabilityBadge.unavailable {
+  background-color: var(--red-100);
+  color: var(--red-800);
+}
+
+.availabilityBadge.unknown {
+  background-color: var(--gray-100);
+  color: var(--gray-600);
+}
+
+.footer {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-top: 1px solid var(--gray-200);
+  background-color: var(--gray-50);
+  text-align: center;
+}
+
+.footer small {
+  color: var(--gray-600);
+  font-size: 12px;
+}
+
+/* Mode sombre */
+@media (prefers-color-scheme: dark) {
+  .popup {
+    background-color: var(--gray-900);
+    border-color: var(--gray-700);
+  }
+  
+  .header {
+    border-bottom-color: var(--gray-700);
+  }
+  
+  .header h3 {
+    color: var(--gray-100);
+  }
+  
+  .closeButton {
+    color: var(--gray-400);
+  }
+  
+  .closeButton:hover {
+    background-color: var(--gray-800);
+    color: var(--gray-200);
+  }
+  
+  .searchContainer {
+    border-bottom-color: var(--gray-700);
+  }
+  
+  .searchInput {
+    background-color: var(--gray-800);
+    border-color: var(--gray-600);
+    color: var(--gray-100);
+  }
+  
+  .searchInput:focus {
+    border-color: var(--primary);
+  }
+  
+  .emptyState {
+    color: var(--gray-400);
+  }
+  
+  .technicianItem:hover:not(:disabled) {
+    background-color: var(--gray-800);
+    border-color: var(--gray-600);
+  }
+  
+  .technicianItem.unavailable {
+    background-color: rgba(239, 68, 68, 0.1);
+  }
+  
+  .technicianName {
+    color: var(--gray-100);
+  }
+  
+  .footer {
+    background-color: var(--gray-800);
+    border-top-color: var(--gray-700);
+  }
+  
+  .footer small {
+    color: var(--gray-400);
+  }
+}

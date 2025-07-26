@@ -2,7 +2,13 @@ import React, { useEffect, useState } from 'react'
 import styles from './ModernWeekView.module.css'
 import ModernTicket from './ModernTicket'
 import { Schedule } from '../hooks/useSchedules'
-import { isHourAvailable } from '../utils/scheduleHelpers'
+import { 
+  isHourAvailable, 
+  getDateAvailabilityStatus,
+  getUnavailabilityTypes,
+  getScheduleTypeLabel,
+  getScheduleTypeColor 
+} from '../utils/scheduleHelpers'
 
 interface ModernWeekViewProps {
   droppedTickets: { [key: string]: any[] }
@@ -15,6 +21,8 @@ interface ModernWeekViewProps {
   onToday: () => void
   schedules: Schedule[]
   selectedTechnicianId: number | null
+  onAddTechnician?: (ticketId: number) => void
+  onRemoveTechnician?: (ticketId: number, technicianId: number) => void
 }
 
 const ModernWeekView: React.FC<ModernWeekViewProps> = ({
@@ -27,7 +35,9 @@ const ModernWeekView: React.FC<ModernWeekViewProps> = ({
   onNextWeek,
   onToday,
   schedules,
-  selectedTechnicianId
+  selectedTechnicianId,
+  onAddTechnician,
+  onRemoveTechnician
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date())
   
@@ -108,15 +118,41 @@ const ModernWeekView: React.FC<ModernWeekViewProps> = ({
       {/* Header avec les jours */}
       <div className={styles.header}>
         <div className={styles.timeGutter}></div>
-        {weekDays.map((date, index) => (
-          <div 
-            key={index} 
-            className={`${styles.dayHeader} ${isToday(date) ? styles.today : ''}`}
-          >
-            <div className={styles.dayName}>{daysOfWeekShort[index]}</div>
-            <div className={styles.dayNumber}>{date.getDate()}</div>
-          </div>
-        ))}
+        {weekDays.map((date, index) => {
+          const dateKey = getDateKey(date)
+          const availabilityStatus = getDateAvailabilityStatus(dateKey, schedules, selectedTechnicianId)
+          const unavailabilityTypes = getUnavailabilityTypes(dateKey, schedules, selectedTechnicianId)
+          
+          return (
+            <div 
+              key={index} 
+              className={`${styles.dayHeader} ${isToday(date) ? styles.today : ''} ${availabilityStatus === 'unavailable' ? styles.unavailable : ''}`}
+            >
+              <div className={styles.dayName}>{daysOfWeekShort[index]}</div>
+              <div className={styles.dayNumber}>{date.getDate()}</div>
+              {availabilityStatus !== 'unknown' && (
+                <div className={styles.availabilityIndicators}>
+                  {availabilityStatus === 'unavailable' && unavailabilityTypes.map(type => (
+                    <span 
+                      key={type}
+                      className={styles.unavailabilityIcon}
+                      style={{ color: getScheduleTypeColor(type) }}
+                      title={getScheduleTypeLabel(type)}
+                    >
+                      {type === 'vacation' && '🏖️'}
+                      {type === 'sick_leave' && '🏥'}
+                      {type === 'break' && '☕'}
+                      {type === 'unavailable' && '🚫'}
+                    </span>
+                  ))}
+                  {availabilityStatus === 'partial' && (
+                    <span className={styles.partialIcon} title="Partiellement disponible">⚡</span>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
       
       {/* Zone pour les événements toute la journée */}
@@ -144,8 +180,13 @@ const ModernWeekView: React.FC<ModernWeekViewProps> = ({
                   technician_id={ticket.technician_id}
                   technician_name={ticket.technician_name}
                   technician_color={ticket.technician_color}
+                  technicians={ticket.technicians}
                   onDragStart={onDragStart}
+                  onAddTechnician={onAddTechnician}
+                  onRemoveTechnician={onRemoveTechnician}
                   isCompact={true}
+                  showActions={true}
+                  isPlanned={true}
                 />
               ))}
             </div>
@@ -204,8 +245,13 @@ const ModernWeekView: React.FC<ModernWeekViewProps> = ({
                           technician_id={ticket.technician_id}
                           technician_name={ticket.technician_name}
                           technician_color={ticket.technician_color}
+                          technicians={ticket.technicians}
                           onDragStart={onDragStart}
+                          onAddTechnician={onAddTechnician}
+                          onRemoveTechnician={onRemoveTechnician}
                           isCompact={true}
+                          showActions={true}
+                          isPlanned={true}
                         />
                       </div>
                     ))}

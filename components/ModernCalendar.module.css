@@ -53,7 +53,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .dayCell:hover {
@@ -99,27 +99,77 @@
   position: relative;
 }
 
-/* Indicateur de disponibilité */
-.availabilityIndicator {
+/* Badges de disponibilité */
+.availabilityBadges {
   position: absolute;
-  bottom: -2px;
-  right: -2px;
-  width: 6px;
-  height: 6px;
-  background-color: var(--success-green);
+  top: 2px;
+  right: 4px;
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.availableBadge,
+.partialBadge,
+.unavailabilityBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
   border-radius: var(--radius-full);
-  box-shadow: 0 0 0 2px var(--bg-primary);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.availableBadge {
+  background-color: var(--success-green);
+  color: white;
+}
+
+.partialBadge {
+  background-color: var(--warning-orange);
+  color: white;
+}
+
+.unavailabilityBadge {
+  font-size: 12px;
+  padding: 0;
+  line-height: 1;
 }
 
 /* Cellules non disponibles */
 .dayCell.unavailable {
-  background-color: var(--gray-100);
+  background-color: #fef2f2;
   cursor: not-allowed;
-  opacity: 0.7;
+  position: relative;
+}
+
+.dayCell.unavailable::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(239, 68, 68, 0.05) 10px,
+    rgba(239, 68, 68, 0.05) 20px
+  );
+  pointer-events: none;
 }
 
 .dayCell.unavailable:hover {
-  background-color: var(--gray-100);
+  background-color: #fef2f2;
+}
+
+/* Cellules partiellement disponibles */
+.dayCell.partial {
+  background-color: #fffbeb;
+}
+
+.dayCell.partial:hover {
+  background-color: #fef3c7;
 }
 
 /* Day Content */
@@ -128,7 +178,8 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
 }
 
 /* More Events Indicator */

@@ -59,6 +59,39 @@
   color: var(--text-secondary);
 }
 
+/* Availability Status */
+.availabilityStatus {
+  margin-left: auto;
+  align-self: center;
+}
+
+.availableStatus {
+  color: var(--success-green);
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.partialStatus {
+  color: var(--warning-orange);
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.unavailableStatus {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.statusBadge {
+  background-color: var(--error-red);
+  color: white;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 14px;
+  font-weight: 500;
+}
+
 /* All Day Section */
 .allDaySection {
   background-color: var(--bg-secondary);

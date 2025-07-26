@@ -2,7 +2,13 @@ import React, { useEffect, useState } from 'react'
 import styles from './ModernDayView.module.css'
 import ModernTicket from './ModernTicket'
 import { Schedule } from '../hooks/useSchedules'
-import { isHourAvailable } from '../utils/scheduleHelpers'
+import { 
+  isHourAvailable, 
+  getDateAvailabilityStatus,
+  getUnavailabilityTypes,
+  getScheduleTypeLabel,
+  getScheduleTypeColor 
+} from '../utils/scheduleHelpers'
 
 interface ModernDayViewProps {
   droppedTickets: { [key: string]: any[] }
@@ -15,6 +21,8 @@ interface ModernDayViewProps {
   onToday: () => void
   schedules: Schedule[]
   selectedTechnicianId: number | null
+  onAddTechnician?: (ticketId: number) => void
+  onRemoveTechnician?: (ticketId: number, technicianId: number) => void
 }
 
 const ModernDayView: React.FC<ModernDayViewProps> = ({
@@ -27,7 +35,9 @@ const ModernDayView: React.FC<ModernDayViewProps> = ({
   onNextDay,
   onToday,
   schedules,
-  selectedTechnicianId
+  selectedTechnicianId,
+  onAddTechnician,
+  onRemoveTechnician
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date())
   
@@ -99,6 +109,11 @@ const ModernDayView: React.FC<ModernDayViewProps> = ({
     return `${hour}:00`
   }
   
+  // Obtenir le statut de disponibilité pour la journée
+  const dateKey = getDateKey()
+  const availabilityStatus = getDateAvailabilityStatus(dateKey, schedules, selectedTechnicianId)
+  const unavailabilityTypes = getUnavailabilityTypes(dateKey, schedules, selectedTechnicianId)
+  
   return (
     <div className={styles.dayView}>
       {/* Header avec la date */}
@@ -111,6 +126,25 @@ const ModernDayView: React.FC<ModernDayViewProps> = ({
             </span>
             <span className={styles.monthYear}>{monthName} {year}</span>
           </div>
+          {availabilityStatus !== 'unknown' && (
+            <div className={styles.availabilityStatus}>
+              {availabilityStatus === 'available' && (
+                <span className={styles.availableStatus}>Disponible</span>
+              )}
+              {availabilityStatus === 'partial' && (
+                <span className={styles.partialStatus}>Partiellement disponible</span>
+              )}
+              {availabilityStatus === 'unavailable' && (
+                <div className={styles.unavailableStatus}>
+                  {unavailabilityTypes.map(type => (
+                    <span key={type} className={styles.statusBadge}>
+                      {getScheduleTypeLabel(type)}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
       
@@ -132,7 +166,12 @@ const ModernDayView: React.FC<ModernDayViewProps> = ({
                 technician_id={ticket.technician_id}
                 technician_name={ticket.technician_name}
                 technician_color={ticket.technician_color}
+                technicians={ticket.technicians}
                 onDragStart={onDragStart}
+                onAddTechnician={onAddTechnician}
+                onRemoveTechnician={onRemoveTechnician}
+                showActions={true}
+                isPlanned={true}
               />
             ))}
           </div>
@@ -178,7 +217,12 @@ const ModernDayView: React.FC<ModernDayViewProps> = ({
                     technician_id={ticket.technician_id}
                     technician_name={ticket.technician_name}
                     technician_color={ticket.technician_color}
+                    technicians={ticket.technicians}
                     onDragStart={onDragStart}
+                    onAddTechnician={onAddTechnician}
+                    onRemoveTechnician={onRemoveTechnician}
+                    showActions={true}
+                    isPlanned={true}
                   />
                 ))}
               </div>
