@@ -30,7 +30,7 @@ test('Test drag and drop manuel', async ({ page }) => {
     // Trouver la cellule du jour
     const cells = document.querySelectorAll('[class*="dayCell"]');
     let targetCell = null;
-    for (const cell of cells) {
+    for (const cell of Array.from(cells)) {
       const dayDiv = cell.querySelector('[class*="dayNumber"]');
       if (dayDiv && dayDiv.textContent?.trim() === day.toString()) {
         targetCell = cell;
@@ -52,8 +52,8 @@ test('Test drag and drop manuel', async ({ page }) => {
       // Récupérer les données du ticket
       const ticketData = {
         id: parseInt(ticketDiv.getAttribute('data-id') || '0'),
-        title: ticketElement.textContent,
-        color: ticketDiv.style.backgroundColor
+        title: ticketElement?.textContent || '',
+        color: (ticketDiv as HTMLElement).style.backgroundColor
       };
       
       dataTransfer.setData('ticket', JSON.stringify(ticketData));
@@ -95,13 +95,13 @@ test('Test drag and drop manuel', async ({ page }) => {
   // Vérifier visuellement si le ticket est sur le calendrier
   const ticketInCalendar = await page.evaluate((day) => {
     const cells = document.querySelectorAll('[class*="dayCell"]');
-    for (const cell of cells) {
+    for (const cell of Array.from(cells)) {
       const dayDiv = cell.querySelector('[class*="dayNumber"]');
       if (dayDiv && dayDiv.textContent?.trim() === day.toString()) {
         const tickets = cell.querySelectorAll('h3');
         return {
           found: tickets.length > 0,
-          tickets: Array.from(tickets).map(t => t.textContent)
+          tickets: Array.from(tickets).map((t: any) => t.textContent)
         };
       }
     }

@@ -244,14 +244,14 @@ class MultiTechnicianTestSuite {
     const result1 = canAddTechnician(this.ticketSansDate, 1)
     this.addResult(
       'Impossible d\'ajouter à ticket non planifié',
-      !result1.canAdd && result1.reason?.includes('planifié')
+      result1.canAdd === false && result1.reason?.includes('planifié') === true
     )
     
     // Technicien déjà assigné
     const result2 = canAddTechnician(this.ticketMultiTech, 1)
     this.addResult(
       'Impossible d\'ajouter technicien déjà assigné',
-      !result2.canAdd && result2.reason?.includes('déjà assigné')
+      result2.canAdd === false && result2.reason?.includes('déjà assigné') === true
     )
     
     // Ajout valide
@@ -275,7 +275,7 @@ class MultiTechnicianTestSuite {
     const result4 = canAddTechnician(ticketMax, 6)
     this.addResult(
       'Limite de 5 techniciens respectée',
-      !result4.canAdd && result4.reason?.includes('Maximum')
+      result4.canAdd === false && result4.reason?.includes('Maximum') === true
     )
   }
   
@@ -287,7 +287,7 @@ class MultiTechnicianTestSuite {
     const result1 = canRemoveTechnician(this.ticketMultiTech, 2)
     this.addResult(
       'Impossible de retirer sur ticket planifié',
-      !result1.canRemove && result1.reason?.includes('calendrier')
+      result1.canRemove === false && result1.reason?.includes('calendrier') === true
     )
     
     // Ticket non planifié avec un seul technicien
@@ -298,7 +298,7 @@ class MultiTechnicianTestSuite {
     const result2 = canRemoveTechnician(ticketUnSeul, 1)
     this.addResult(
       'Impossible de retirer le seul technicien',
-      !result2.canRemove && result2.reason?.includes('seul technicien')
+      result2.canRemove === false && result2.reason?.includes('seul technicien') === true
     )
     
     // Retrait valide
@@ -316,7 +316,7 @@ class MultiTechnicianTestSuite {
     const result4 = canRemoveTechnician(ticketNonPlanifie, 5)
     this.addResult(
       'Impossible de retirer technicien non assigné',
-      !result4.canRemove && result4.reason?.includes('pas assigné')
+      result4.canRemove === false && result4.reason?.includes('pas assigné') === true
     )
   }
   

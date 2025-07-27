@@ -47,7 +47,7 @@ test('Test manuel avec pause', async ({ page }) => {
     const targetCell = page.locator(`[class*="dayCell"]:has([class*="dayNumber"]:text("${dayNumber}"))`).first();
     await ticket.dragTo(targetCell);
     console.log('dragTo réussi');
-  } catch (e) {
+  } catch (e: any) {
     console.log('dragTo échoué:', e.message);
   }
   
