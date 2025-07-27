@@ -112,7 +112,7 @@ const ModernHome: NextPage = () => {
     
     // Si un technicien est sélectionné ET qu'on n'est pas en vue multi-tech, assigner automatiquement le ticket à ce technicien
     // En vue multi-tech, toujours utiliser le technician_id du ticket (qui vient de la colonne où on a déposé)
-    const technicianIdToAssign = (viewMode !== 'multitech' && selectedTechnicianId !== null) 
+    const technicianIdToAssign = (viewMode !== 'multiTech' && selectedTechnicianId !== null) 
       ? selectedTechnicianId 
       : ticket.technician_id
     
@@ -144,7 +144,7 @@ const ModernHome: NextPage = () => {
     // Mettre à jour dans Supabase
     // En vue multi-tech, toujours passer le technicien car on veut changer de colonne
     // Dans les autres vues, ne passer le technicien que si on change vraiment
-    if (viewMode === 'multitech' || ticket.technician_id !== technicianIdToAssign) {
+    if (viewMode === 'multiTech' || ticket.technician_id !== technicianIdToAssign) {
       await updateTicketPosition(ticket.id, dateString, hour, technicianIdToAssign)
     } else {
       // Si on ne change pas de technicien (dans les autres vues), ne pas passer le paramètre

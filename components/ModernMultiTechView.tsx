@@ -257,8 +257,18 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
                     <div
                       key={`${technician.id}-${hour}`}
                       className={`${styles.hourCell} ${!isAvailable ? styles.unavailableHour : ''}`}
-                      onDrop={isAvailable ? (e) => handleDrop(e, hour, technician.id) : undefined}
-                      onDragOver={isAvailable ? onDragOver : undefined}
+                      onDrop={(e) => {
+                        e.preventDefault()
+                        if (isAvailable) {
+                          handleDrop(e, hour, technician.id)
+                        }
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault()
+                        if (!isAvailable) {
+                          e.dataTransfer.dropEffect = 'none'
+                        }
+                      }}
                     >
                       {ticketsAtHour.map((ticket) => (
                         <ModernTicket
