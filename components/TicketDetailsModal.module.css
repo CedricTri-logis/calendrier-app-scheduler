@@ -59,7 +59,7 @@
 
 .infoGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 16px;
 }
 
@@ -84,6 +84,23 @@
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
   margin: 0;
+}
+
+.editableInfoValue {
+  font-size: 14px;
+  color: var(--text-primary);
+  padding: 8px 12px;
+  background-color: var(--background-primary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  margin: 0;
+  transition: border-color var(--transition-fast);
+}
+
+.editableInfoValue:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .emptyValue {
@@ -226,12 +243,14 @@
 }
 
 .saveButton {
-  background-color: var(--primary-color);
+  background-color: #28a745;
   color: white;
+  border: 1px solid #28a745;
 }
 
 .saveButton:hover:not(:disabled) {
-  background-color: var(--primary-hover);
+  background-color: #218838;
+  border-color: #1e7e34;
   transform: translateY(-1px);
 }
 
@@ -274,5 +293,11 @@
   
   .footerButton {
     width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .infoGrid {
+    grid-template-columns: 1fr;
   }
 }

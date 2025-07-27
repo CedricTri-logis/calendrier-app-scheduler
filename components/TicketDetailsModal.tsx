@@ -20,6 +20,8 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
 }) => {
   const [description, setDescription] = useState('')
   const [estimatedDuration, setEstimatedDuration] = useState('')
+  const [editedDate, setEditedDate] = useState('')
+  const [editedTime, setEditedTime] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
   // Synchroniser avec les données du ticket
@@ -27,6 +29,19 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
     if (ticket) {
       setDescription(ticket.description || '')
       setEstimatedDuration(ticket.estimated_duration ? ticket.estimated_duration.toString() : '')
+      
+      // Initialiser la date et l'heure d'édition
+      if (ticket.date) {
+        setEditedDate(ticket.date)
+        if (ticket.hour !== null && ticket.hour !== undefined && ticket.hour !== -1) {
+          setEditedTime(String(ticket.hour).padStart(2, '0') + ':00')
+        } else {
+          setEditedTime('')
+        }
+      } else {
+        setEditedDate('')
+        setEditedTime('')
+      }
     }
   }, [ticket])
 
@@ -35,6 +50,8 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
     if (!isOpen) {
       setDescription('')
       setEstimatedDuration('')
+      setEditedDate('')
+      setEditedTime('')
       setIsSaving(false)
     }
   }, [isOpen])
@@ -75,6 +92,20 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
     // Restaurer les valeurs originales
     setDescription(ticket.description || '')
     setEstimatedDuration(ticket.estimated_duration ? ticket.estimated_duration.toString() : '')
+    
+    // Restaurer date et heure
+    if (ticket.date) {
+      setEditedDate(ticket.date)
+      if (ticket.hour !== null && ticket.hour !== undefined && ticket.hour !== -1) {
+        setEditedTime(String(ticket.hour).padStart(2, '0') + ':00')
+      } else {
+        setEditedTime('')
+      }
+    } else {
+      setEditedDate('')
+      setEditedTime('')
+    }
+    
     onClose()
   }
 
@@ -118,7 +149,9 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
                               characterCount > 400 ? styles.warning : ''
 
   const hasChanges = description !== (ticket.description || '') || 
-                     estimatedDuration !== (ticket.estimated_duration ? ticket.estimated_duration.toString() : '')
+                     estimatedDuration !== (ticket.estimated_duration ? ticket.estimated_duration.toString() : '') ||
+                     editedDate !== (ticket.date || '') ||
+                     editedTime !== (ticket.hour !== null && ticket.hour !== undefined && ticket.hour !== -1 ? String(ticket.hour).padStart(2, '0') + ':00' : '')
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="large">
@@ -146,15 +179,42 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
             
             <div className={styles.infoGrid}>
               <div className={styles.infoItem}>
-                <p className={styles.infoLabel}>Date et heure</p>
-                <p className={styles.infoValue}>{formatDateTime()}</p>
+                <label className={styles.infoLabel} htmlFor="ticketDate">Date (YYYY-MM-DD)</label>
+                <input
+                  id="ticketDate"
+                  type="date"
+                  className={styles.editableInfoValue}
+                  value={editedDate}
+                  onChange={(e) => setEditedDate(e.target.value)}
+                  disabled={loading || isSaving}
+                />
               </div>
               
               <div className={styles.infoItem}>
-                <p className={styles.infoLabel}>Durée estimée actuelle</p>
-                <p className={styles.infoValue}>
-                  {formatDuration(ticket.estimated_duration ?? null)}
-                </p>
+                <label className={styles.infoLabel} htmlFor="ticketTime">Heure (HH:MM)</label>
+                <input
+                  id="ticketTime"
+                  type="time"
+                  className={styles.editableInfoValue}
+                  value={editedTime}
+                  onChange={(e) => setEditedTime(e.target.value)}
+                  disabled={loading || isSaving}
+                />
+              </div>
+
+              <div className={styles.infoItem}>
+                <label className={styles.infoLabel} htmlFor="ticketDuration">Durée estimée (minutes)</label>
+                <input
+                  id="ticketDuration"
+                  type="number"
+                  className={styles.editableInfoValue}
+                  value={estimatedDuration}
+                  onChange={(e) => setEstimatedDuration(e.target.value)}
+                  placeholder="0"
+                  min="0"
+                  max="9999"
+                  disabled={loading || isSaving}
+                />
               </div>
             </div>
           </div>
@@ -189,50 +249,25 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
             </div>
           )}
 
-          {/* Détails éditables */}
+          {/* Description */}
           <div className={styles.formSection}>
             <h3 className={styles.sectionTitle}>
               <span className={styles.sectionIcon}>✏️</span>
-              Détails éditables
+              Description du travail
             </h3>
             
-            <div className={styles.editableSection}>
-              <div className={styles.textareaField}>
-                <label className={styles.infoLabel} htmlFor="description">
-                  Description du travail
-                </label>
-                <textarea
-                  id="description"
-                  className={styles.textarea}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Décrivez le travail à effectuer pour ce ticket..."
-                  maxLength={500}
-                  disabled={loading || isSaving}
-                />
-                <div className={`${styles.characterCount} ${characterCountClass}`}>
-                  {characterCount}/500 caractères
-                </div>
-              </div>
-
-              <div className={styles.durationField}>
-                <label className={styles.infoLabel} htmlFor="estimatedDuration">
-                  Durée estimée
-                </label>
-                <div className={styles.durationInput}>
-                  <input
-                    id="estimatedDuration"
-                    type="number"
-                    className={styles.durationValue}
-                    value={estimatedDuration}
-                    onChange={(e) => setEstimatedDuration(e.target.value)}
-                    placeholder="0"
-                    min="0"
-                    max="9999"
-                    disabled={loading || isSaving}
-                  />
-                  <span className={styles.durationUnit}>minutes</span>
-                </div>
+            <div className={styles.textareaField}>
+              <textarea
+                id="description"
+                className={styles.textarea}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Décrivez le travail à effectuer pour ce ticket..."
+                maxLength={500}
+                disabled={loading || isSaving}
+              />
+              <div className={`${styles.characterCount} ${characterCountClass}`}>
+                {characterCount}/500 caractères
               </div>
             </div>
           </div>
