@@ -83,7 +83,7 @@ export default function MigrationStatus() {
       setStatus(newStatus)
     } catch (error) {
       console.error('Erreur lors de la vérification:', error)
-      setStatus(prev => ({ ...prev, error: error.message }))
+      setStatus(prev => ({ ...prev, error: error instanceof Error ? error.message : 'Erreur inconnue' }))
     } finally {
       setLoading(false)
     }
