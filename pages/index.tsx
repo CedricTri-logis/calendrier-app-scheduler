@@ -434,7 +434,10 @@ const ModernHome: NextPage = () => {
                 technician_id={ticket.technician_id}
                 technician_name={ticket.technician_name}
                 technician_color={ticket.technician_color}
-                technicians={ticket.technicians}
+                technicians={ticket.technicians?.map(t => ({
+                  ...t,
+                  is_primary: t.is_primary ?? false
+                }))}
                 onDragStart={handleDragStart}
                 onAddTechnician={(ticketId) => handleAddTechnician(ticketId)}
                 onRemoveTechnician={handleRemoveTechnician}
