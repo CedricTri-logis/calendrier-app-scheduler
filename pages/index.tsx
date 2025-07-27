@@ -44,7 +44,7 @@ const ModernHome: NextPage = () => {
   const [currentDate, setCurrentDate] = useState(new Date())
   
   // État pour la vue actuelle (mois, semaine, jour, multi-tech)
-  const [viewMode, setViewMode] = useState<'month' | 'week' | 'day' | 'multitech'>('month')
+  const [viewMode, setViewMode] = useState<'month' | 'week' | 'day' | 'multiTech'>('month')
   
   // État pour le filtre technicien
   const [selectedTechnicianId, setSelectedTechnicianId] = useState<number | null>(null)
@@ -58,6 +58,13 @@ const ModernHome: NextPage = () => {
     position: { x: number; y: number }
     currentTechnicianIds: number[]
   } | null>(null)
+
+  // Fonction pour gérer le clic sur un jour du calendrier
+  const handleDayClick = (date: Date) => {
+    // Passer en vue multi-tech et définir la date cliquée
+    setViewMode('multiTech')
+    setCurrentDate(date)
+  }
 
   // Filtrer les tickets pour obtenir ceux qui ne sont pas placés (sans filtre)
   const unplacedTickets = tickets.filter(ticket => !ticket.date)
@@ -507,15 +514,15 @@ const ModernHome: NextPage = () => {
                   Jour
                 </button>
                 <button 
-                  className={`${styles.viewButton} ${viewMode === 'multitech' ? styles.active : ''}`}
-                  onClick={() => setViewMode('multitech')}
+                  className={`${styles.viewButton} ${viewMode === 'multiTech' ? styles.active : ''}`}
+                  onClick={() => setViewMode('multiTech')}
                 >
                   Multi-Tech
                 </button>
               </div>
             </div>
             
-            {viewMode !== 'multitech' && (
+            {viewMode !== 'multiTech' && (
               <div className={styles.filterSection}>
                 <label className={styles.filterLabel}>Technicien:</label>
                 <div style={{ minWidth: '200px' }}>
@@ -592,6 +599,7 @@ const ModernHome: NextPage = () => {
                 selectedTechnicianId={selectedTechnicianId}
                 onAddTechnician={handleAddTechnician}
                 onRemoveTechnician={handleRemoveTechnician}
+                onDayClick={handleDayClick}
               />
             )}
             
@@ -629,7 +637,7 @@ const ModernHome: NextPage = () => {
               />
             )}
             
-            {viewMode === 'multitech' && (
+            {viewMode === 'multiTech' && (
               <ModernMultiTechView 
                 droppedTickets={ticketsByDate}
                 onDrop={handleDrop}
