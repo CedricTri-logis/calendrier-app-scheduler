@@ -96,6 +96,12 @@ export function hasMultipleTechnicians(ticket: Ticket): boolean {
  * Vérifie si un technicien est assigné à un ticket
  */
 export function isTechnicianAssigned(ticket: Ticket, technicianId: number): boolean {
+  // Vérifier d'abord le technician_id principal
+  if (ticket.technician_id === technicianId) {
+    return true
+  }
+  
+  // Puis vérifier dans le tableau des techniciens
   return ticket.technicians?.some(t => t.id === technicianId) || false
 }
 
@@ -103,7 +109,23 @@ export function isTechnicianAssigned(ticket: Ticket, technicianId: number): bool
  * Obtient les IDs de tous les techniciens assignés
  */
 export function getAssignedTechnicianIds(ticket: Ticket): number[] {
-  return ticket.technicians?.map(t => t.id) || []
+  const ids: number[] = []
+  
+  // Ajouter le technician_id principal s'il existe
+  if (ticket.technician_id) {
+    ids.push(ticket.technician_id)
+  }
+  
+  // Ajouter les IDs du tableau technicians
+  if (ticket.technicians) {
+    ticket.technicians.forEach(t => {
+      if (!ids.includes(t.id)) {
+        ids.push(t.id)
+      }
+    })
+  }
+  
+  return ids
 }
 
 /**
