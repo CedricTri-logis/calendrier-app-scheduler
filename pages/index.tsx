@@ -5,8 +5,9 @@ import ModernTicket from "../components/ModernTicket"
 import ModernCalendar from "../components/ModernCalendar"
 import ModernWeekView from "../components/ModernWeekView"
 import ModernDayView from "../components/ModernDayView"
+import ModernMultiTechView from "../components/ModernMultiTechView"
 import TechnicianQuickAdd from "../components/TechnicianQuickAdd"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useTickets } from "../hooks/useTickets"
 import { useTechnicians } from "../hooks/useTechnicians"
 import { useSchedules } from "../hooks/useSchedules"
@@ -24,6 +25,13 @@ const ModernHome: NextPage = () => {
   // Hook Supabase pour gérer les techniciens
   const { technicians, loading: loadingTechnicians } = useTechnicians()
   
+  // Stocker les techniciens dans window pour y accéder depuis useTickets
+  useEffect(() => {
+    if (technicians && technicians.length > 0) {
+      (window as any).__technicians = technicians
+    }
+  }, [technicians])
+  
   // Hook Supabase pour gérer les horaires
   const { schedules, loading: loadingSchedules } = useSchedules()
   
@@ -35,8 +43,8 @@ const ModernHome: NextPage = () => {
   // État pour la date actuelle
   const [currentDate, setCurrentDate] = useState(new Date())
   
-  // État pour la vue actuelle (mois, semaine, jour)
-  const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month')
+  // État pour la vue actuelle (mois, semaine, jour, multi-tech)
+  const [viewMode, setViewMode] = useState<'month' | 'week' | 'day' | 'multitech'>('month')
   
   // État pour le filtre technicien
   const [selectedTechnicianId, setSelectedTechnicianId] = useState<number | null>(null)
@@ -485,35 +493,43 @@ const ModernHome: NextPage = () => {
                 >
                   Jour
                 </button>
+                <button 
+                  className={`${styles.viewButton} ${viewMode === 'multitech' ? styles.active : ''}`}
+                  onClick={() => setViewMode('multitech')}
+                >
+                  Multi-Tech
+                </button>
               </div>
             </div>
             
-            <div className={styles.filterSection}>
-              <label className={styles.filterLabel}>Technicien:</label>
-              <div style={{ minWidth: '200px' }}>
-                <Input
-                  variant="select"
-                  value={selectedTechnicianId || ''}
-                  onChange={(e) => setSelectedTechnicianId(e.target.value ? parseInt(e.target.value) : null)}
-                  options={[
-                    { value: '', label: 'Tous les techniciens' },
-                    ...technicians.filter(tech => tech.active).map(tech => {
-                      const todayKey = formatDateForDB(new Date())
-                      const todayStatus = getDateAvailabilityStatus(todayKey, schedules, tech.id)
-                      let statusEmoji = ''
-                      if (todayStatus === 'available') statusEmoji = '✅ '
-                      else if (todayStatus === 'partial') statusEmoji = '⚡ '
-                      else if (todayStatus === 'unavailable') statusEmoji = '🚫 '
-                      return {
-                        value: tech.id.toString(),
-                        label: `${statusEmoji}${tech.name}`
-                      }
-                    })
-                  ]}
-                  fullWidth
-                />
+            {viewMode !== 'multitech' && (
+              <div className={styles.filterSection}>
+                <label className={styles.filterLabel}>Technicien:</label>
+                <div style={{ minWidth: '200px' }}>
+                  <Input
+                    variant="select"
+                    value={selectedTechnicianId || ''}
+                    onChange={(e) => setSelectedTechnicianId(e.target.value ? parseInt(e.target.value) : null)}
+                    options={[
+                      { value: '', label: 'Tous les techniciens' },
+                      ...technicians.filter(tech => tech.active).map(tech => {
+                        const todayKey = formatDateForDB(new Date())
+                        const todayStatus = getDateAvailabilityStatus(todayKey, schedules, tech.id)
+                        let statusEmoji = ''
+                        if (todayStatus === 'available') statusEmoji = '✅ '
+                        else if (todayStatus === 'partial') statusEmoji = '⚡ '
+                        else if (todayStatus === 'unavailable') statusEmoji = '🚫 '
+                        return {
+                          value: tech.id.toString(),
+                          label: `${statusEmoji}${tech.name}`
+                        }
+                      })
+                    ]}
+                    fullWidth
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
           
           {/* Légende des disponibilités */}
@@ -595,6 +611,23 @@ const ModernHome: NextPage = () => {
                 onToday={goToToday}
                 schedules={schedules}
                 selectedTechnicianId={selectedTechnicianId}
+                onAddTechnician={handleAddTechnician}
+                onRemoveTechnician={handleRemoveTechnician}
+              />
+            )}
+            
+            {viewMode === 'multitech' && (
+              <ModernMultiTechView 
+                droppedTickets={ticketsByDate}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragStart={handleDragStart}
+                currentDate={currentDate}
+                onPreviousDay={goToPreviousDay}
+                onNextDay={goToNextDay}
+                onToday={goToToday}
+                schedules={schedules}
+                technicians={technicians}
                 onAddTechnician={handleAddTechnician}
                 onRemoveTechnician={handleRemoveTechnician}
               />
