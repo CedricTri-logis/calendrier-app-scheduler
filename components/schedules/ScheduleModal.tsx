@@ -147,7 +147,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             placeholder="Ex: Formation, réunion, etc."
-            {/* @ts-ignore */}
+            // @ts-ignore
             rows={3}
             fullWidth
           />
