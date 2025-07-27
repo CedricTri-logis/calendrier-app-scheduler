@@ -22,6 +22,8 @@ export interface TicketWithTechnician {
   }>
   primary_technician_name?: string | null
   primary_technician_color?: string | null
+  description?: string | null
+  estimated_duration?: number | null
   created_at: string
   updated_at: string
 }
@@ -545,6 +547,51 @@ export function useTickets() {
     }
   }
 
+  // Mettre à jour les détails d'un ticket (description et durée estimée)
+  const updateTicketDetails = async (id: number, description: string | null, estimatedDuration: number | null) => {
+    // Sauvegarder l'état précédent pour le rollback en cas d'erreur
+    const previousTickets = [...tickets]
+    
+    try {
+      // 1. Mise à jour optimiste locale immédiate
+      setTickets(prevTickets => 
+        prevTickets.map(ticket => 
+          ticket.id === id 
+            ? { 
+                ...ticket, 
+                description, 
+                estimated_duration: estimatedDuration 
+              }
+            : ticket
+        )
+      )
+      
+      // 2. Préparer les données pour Supabase
+      const updateData: any = { 
+        description, 
+        estimated_duration: estimatedDuration 
+      }
+      
+      // 3. Envoyer la mise à jour à Supabase en arrière-plan
+      const { error } = await supabase
+        .from('tickets')
+        .update(updateData)
+        .eq('id', id)
+
+      if (error) throw error
+
+      // Note: Pas de fetchTickets() ici - on garde l'état local optimiste
+      // Le listener temps réel gérera la synchronisation si nécessaire
+
+      return true
+    } catch (err) {
+      // En cas d'erreur, restaurer l'état précédent
+      setTickets(previousTickets)
+      setError(err instanceof Error ? err.message : 'Erreur lors de la mise à jour des détails du ticket')
+      return false
+    }
+  }
+
   return {
     tickets,
     loading,
@@ -556,6 +603,7 @@ export function useTickets() {
     addTechnicianToTicket,
     removeTechnicianFromTicket,
     checkAllTechniciansAvailability,
+    updateTicketDetails,
     refetch: fetchTickets
   }
 }

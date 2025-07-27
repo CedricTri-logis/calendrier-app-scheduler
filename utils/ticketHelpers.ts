@@ -18,6 +18,8 @@ export interface Ticket {
   technician_name?: string | null
   technician_color?: string | null
   technicians?: Technician[]
+  description?: string | null
+  estimated_duration?: number | null  // en minutes
   created_at?: string
   updated_at?: string
 }
@@ -33,6 +35,8 @@ export function normalizeTicket(ticket: any): Ticket {
     color: ticket.color || '#fff3cd',
     date: ticket.date || null,
     hour: ticket.hour ?? null,
+    description: ticket.description || null,
+    estimated_duration: ticket.estimated_duration || null,
     created_at: ticket.created_at,
     updated_at: ticket.updated_at
   }

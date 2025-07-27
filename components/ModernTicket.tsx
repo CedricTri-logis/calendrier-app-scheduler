@@ -26,6 +26,7 @@ interface ModernTicketProps {
   onAddTechnician?: (ticketId: number) => void
   onRemoveTechnician?: (ticketId: number, technicianId: number) => void
   onDeleteTicket?: (ticketId: number) => void
+  onTicketClick?: (ticketId: number) => void
   isCompact?: boolean
   showActions?: boolean
   isPlanned?: boolean
@@ -43,12 +44,16 @@ const ModernTicket: React.FC<ModernTicketProps> = ({
   onAddTechnician,
   onRemoveTechnician,
   onDeleteTicket,
+  onTicketClick,
   isCompact = false,
   showActions = false,
   isPlanned = false
 }) => {
   const [isHovered, setIsHovered] = useState(false)
+  const [clickStartTime, setClickStartTime] = useState<number | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
   const handleDragStart = (e: React.DragEvent) => {
+    setIsDragging(true)
     const ticketData = {
       id,
       title,
@@ -60,6 +65,41 @@ const ModernTicket: React.FC<ModernTicketProps> = ({
     }
     e.dataTransfer.setData('ticket', JSON.stringify(ticketData))
     onDragStart(e, id)
+  }
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // Ignorer les clics sur les boutons d'action
+    if ((e.target as Element).closest(`.${styles.actionButton}`)) {
+      return
+    }
+    
+    setClickStartTime(Date.now())
+    setIsDragging(false)
+  }
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    // Ignorer les clics sur les boutons d'action
+    if ((e.target as Element).closest(`.${styles.actionButton}`)) {
+      return
+    }
+
+    if (clickStartTime && !isDragging) {
+      const clickDuration = Date.now() - clickStartTime
+      
+      // Si le clic était court (moins de 200ms) et qu'on n'a pas dragué, 
+      // c'est un vrai clic pour ouvrir le modal
+      if (clickDuration < 200 && onTicketClick) {
+        onTicketClick(id)
+      }
+    }
+    
+    setClickStartTime(null)
+    setIsDragging(false)
+  }
+
+  const handleDragEnd = () => {
+    setIsDragging(false)
+    setClickStartTime(null)
   }
   
   // Créer un objet ticket pour utiliser les utilitaires
@@ -125,6 +165,9 @@ const ModernTicket: React.FC<ModernTicketProps> = ({
       className={`${styles.ticket} ${styles[getColorClass()]} ${isCompact ? styles.compact : ''}`}
       draggable
       onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >

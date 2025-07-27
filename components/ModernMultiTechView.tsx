@@ -23,6 +23,7 @@ interface ModernMultiTechViewProps {
   technicians: Technician[]
   onAddTechnician?: (ticketId: number) => void
   onRemoveTechnician?: (ticketId: number, technicianId: number) => void
+  onTicketClick?: (ticketId: number) => void
 }
 
 const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
@@ -37,7 +38,8 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
   schedules,
   technicians,
   onAddTechnician,
-  onRemoveTechnician
+  onRemoveTechnician,
+  onTicketClick
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date())
   
@@ -241,6 +243,7 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
                       onDragStart={onDragStart}
                       onAddTechnician={onAddTechnician}
                       onRemoveTechnician={onRemoveTechnician}
+                      onTicketClick={onTicketClick}
                       isCompact={true}
                       showActions={true}
                       isPlanned={true}
@@ -283,6 +286,7 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
                           onDragStart={onDragStart}
                           onAddTechnician={onAddTechnician}
                           onRemoveTechnician={onRemoveTechnician}
+                          onTicketClick={onTicketClick}
                           isCompact={true}
                           showActions={true}
                           isPlanned={true}

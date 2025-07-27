@@ -7,6 +7,7 @@ import ModernWeekView from "../components/ModernWeekView"
 import ModernDayView from "../components/ModernDayView"
 import ModernMultiTechView from "../components/ModernMultiTechView"
 import TechnicianQuickAdd from "../components/TechnicianQuickAdd"
+import TicketDetailsModal from "../components/TicketDetailsModal"
 import { useState, useEffect } from "react"
 import { useTickets } from "../hooks/useTickets"
 import { useTechnicians } from "../hooks/useTechnicians"
@@ -20,7 +21,7 @@ import { LoadingContainer, SpinnerOverlay } from "../components/ui/Spinner"
 
 const ModernHome: NextPage = () => {
   // Hook Supabase pour gérer les tickets
-  const { tickets, loading, error, createTicket, updateTicketPosition, removeTicketFromCalendar, deleteTicket, addTechnicianToTicket, removeTechnicianFromTicket } = useTickets()
+  const { tickets, loading, error, createTicket, updateTicketPosition, removeTicketFromCalendar, deleteTicket, addTechnicianToTicket, removeTechnicianFromTicket, updateTicketDetails } = useTickets()
   
   // Hook Supabase pour gérer les techniciens
   const { technicians, loading: loadingTechnicians } = useTechnicians()
@@ -58,6 +59,9 @@ const ModernHome: NextPage = () => {
     position: { x: number; y: number }
     currentTechnicianIds: number[]
   } | null>(null)
+  
+  // État pour le modal de détails de ticket
+  const [selectedTicketForDetails, setSelectedTicketForDetails] = useState<number | null>(null)
 
   // Fonction pour gérer le clic sur un jour du calendrier
   const handleDayClick = (date: Date) => {
@@ -252,6 +256,21 @@ const ModernHome: NextPage = () => {
     if (!result.success) {
       alert(`Erreur lors du retrait du technicien: ${result.error}`)
     }
+  }
+  
+  // Gestion du clic sur un ticket pour ouvrir les détails
+  const handleTicketClick = (ticketId: number) => {
+    setSelectedTicketForDetails(ticketId)
+  }
+  
+  // Gestion de la fermeture du modal de détails
+  const handleCloseTicketDetails = () => {
+    setSelectedTicketForDetails(null)
+  }
+  
+  // Gestion de la sauvegarde des détails de ticket
+  const handleUpdateTicketDetails = async (ticketId: number, description: string | null, estimatedDuration: number | null) => {
+    return await updateTicketDetails(ticketId, description, estimatedDuration)
   }
   
   // Gestion de la sélection de technicien dans le popup
@@ -472,6 +491,7 @@ const ModernHome: NextPage = () => {
                 onAddTechnician={(ticketId) => handleAddTechnician(ticketId)}
                 onRemoveTechnician={handleRemoveTechnician}
                 onDeleteTicket={deleteTicket}
+                onTicketClick={handleTicketClick}
                 showActions={true}
                 isPlanned={false}
               />
@@ -612,6 +632,7 @@ const ModernHome: NextPage = () => {
                 selectedTechnicianId={selectedTechnicianId}
                 onAddTechnician={handleAddTechnician}
                 onRemoveTechnician={handleRemoveTechnician}
+                onTicketClick={handleTicketClick}
                 onDayClick={handleDayClick}
               />
             )}
@@ -630,6 +651,7 @@ const ModernHome: NextPage = () => {
                 selectedTechnicianId={selectedTechnicianId}
                 onAddTechnician={handleAddTechnician}
                 onRemoveTechnician={handleRemoveTechnician}
+                onTicketClick={handleTicketClick}
               />
             )}
             
@@ -647,6 +669,7 @@ const ModernHome: NextPage = () => {
                 selectedTechnicianId={selectedTechnicianId}
                 onAddTechnician={handleAddTechnician}
                 onRemoveTechnician={handleRemoveTechnician}
+                onTicketClick={handleTicketClick}
               />
             )}
             
@@ -664,6 +687,7 @@ const ModernHome: NextPage = () => {
                 technicians={technicians}
                 onAddTechnician={handleAddTechnician}
                 onRemoveTechnician={handleRemoveTechnician}
+                onTicketClick={handleTicketClick}
               />
             )}
           </div>
@@ -682,6 +706,15 @@ const ModernHome: NextPage = () => {
           onClose={() => setTechnicianAddPopup(null)}
         />
       )}
+      
+      {/* Modal des détails de ticket */}
+      <TicketDetailsModal
+        isOpen={selectedTicketForDetails !== null}
+        onClose={handleCloseTicketDetails}
+        ticket={selectedTicketForDetails ? tickets.find(t => t.id === selectedTicketForDetails) || null : null}
+        onSave={handleUpdateTicketDetails}
+        loading={loading}
+      />
     </div>
   )
 }

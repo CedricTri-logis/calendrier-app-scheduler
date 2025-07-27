@@ -23,6 +23,7 @@ interface ModernWeekViewProps {
   selectedTechnicianId: number | null
   onAddTechnician?: (ticketId: number) => void
   onRemoveTechnician?: (ticketId: number, technicianId: number) => void
+  onTicketClick?: (ticketId: number) => void
 }
 
 const ModernWeekView: React.FC<ModernWeekViewProps> = ({
@@ -37,7 +38,8 @@ const ModernWeekView: React.FC<ModernWeekViewProps> = ({
   schedules,
   selectedTechnicianId,
   onAddTechnician,
-  onRemoveTechnician
+  onRemoveTechnician,
+  onTicketClick
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date())
   
@@ -184,6 +186,7 @@ const ModernWeekView: React.FC<ModernWeekViewProps> = ({
                   onDragStart={onDragStart}
                   onAddTechnician={onAddTechnician}
                   onRemoveTechnician={onRemoveTechnician}
+                  onTicketClick={onTicketClick}
                   isCompact={true}
                   showActions={true}
                   isPlanned={true}
@@ -249,6 +252,7 @@ const ModernWeekView: React.FC<ModernWeekViewProps> = ({
                           onDragStart={onDragStart}
                           onAddTechnician={onAddTechnician}
                           onRemoveTechnician={onRemoveTechnician}
+                          onTicketClick={onTicketClick}
                           isCompact={true}
                           showActions={true}
                           isPlanned={true}

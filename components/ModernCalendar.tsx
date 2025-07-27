@@ -23,6 +23,7 @@ interface ModernCalendarProps {
   selectedTechnicianId: number | null
   onAddTechnician?: (ticketId: number) => void
   onRemoveTechnician?: (ticketId: number, technicianId: number) => void
+  onTicketClick?: (ticketId: number) => void
   onDayClick?: (date: Date) => void
 }
 
@@ -39,6 +40,7 @@ const ModernCalendar: React.FC<ModernCalendarProps> = ({
   selectedTechnicianId,
   onAddTechnician,
   onRemoveTechnician,
+  onTicketClick,
   onDayClick
 }) => {
   // Jours de la semaine
@@ -203,6 +205,7 @@ const ModernCalendar: React.FC<ModernCalendarProps> = ({
                       onDragStart={onDragStart}
                       onAddTechnician={onAddTechnician}
                       onRemoveTechnician={onRemoveTechnician}
+                      onTicketClick={onTicketClick}
                       isCompact={true}
                       showActions={true}
                       isPlanned={true}

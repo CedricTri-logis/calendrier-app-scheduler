@@ -23,6 +23,7 @@ interface ModernDayViewProps {
   selectedTechnicianId: number | null
   onAddTechnician?: (ticketId: number) => void
   onRemoveTechnician?: (ticketId: number, technicianId: number) => void
+  onTicketClick?: (ticketId: number) => void
 }
 
 const ModernDayView: React.FC<ModernDayViewProps> = ({
@@ -37,7 +38,8 @@ const ModernDayView: React.FC<ModernDayViewProps> = ({
   schedules,
   selectedTechnicianId,
   onAddTechnician,
-  onRemoveTechnician
+  onRemoveTechnician,
+  onTicketClick
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date())
   
@@ -170,6 +172,7 @@ const ModernDayView: React.FC<ModernDayViewProps> = ({
                 onDragStart={onDragStart}
                 onAddTechnician={onAddTechnician}
                 onRemoveTechnician={onRemoveTechnician}
+                onTicketClick={onTicketClick}
                 showActions={true}
                 isPlanned={true}
               />
@@ -221,6 +224,7 @@ const ModernDayView: React.FC<ModernDayViewProps> = ({
                     onDragStart={onDragStart}
                     onAddTechnician={onAddTechnician}
                     onRemoveTechnician={onRemoveTechnician}
+                    onTicketClick={onTicketClick}
                     showActions={true}
                     isPlanned={true}
                   />
