@@ -211,8 +211,10 @@ export function useTickets() {
           })
       }
 
-      // Note: Pas de fetchTickets() ici - on garde l'état local optimiste
-      // Le listener temps réel gérera la synchronisation si nécessaire
+      // Si on a changé de technicien, on doit recharger pour avoir les bonnes relations
+      if (technicianId !== undefined) {
+        await fetchTickets()
+      }
 
       return true
     } catch (err) {

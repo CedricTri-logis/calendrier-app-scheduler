@@ -67,6 +67,15 @@ export function normalizeTicket(ticket: any): Ticket {
       active: ticket.technician.active !== false
     }]
   }
+  // Si on a seulement technician_id sans la relation chargée
+  else if (ticket.technician_id) {
+    normalized.technician_id = ticket.technician_id
+    // Essayer de récupérer les infos depuis le ticket lui-même
+    normalized.technician_name = ticket.technician_name || 'Technicien'
+    normalized.technician_color = ticket.technician_color || '#3B82F6'
+    // Créer un tableau minimal pour ne pas perdre le ticket
+    normalized.technicians = []
+  }
   // Pas de technicien assigné
   else {
     normalized.technician_id = null
