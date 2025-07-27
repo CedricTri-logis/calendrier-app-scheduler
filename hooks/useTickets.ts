@@ -158,6 +158,15 @@ export function useTickets() {
               if (newTechnician) {
                 updatedTicket.technician_name = newTechnician.name
                 updatedTicket.technician_color = newTechnician.color
+                
+                // Remplacer complètement le tableau des techniciens par le nouveau
+                updatedTicket.technicians = [{
+                  id: newTechnician.id,
+                  name: newTechnician.name,
+                  color: newTechnician.color,
+                  active: newTechnician.active || true,
+                  is_primary: true
+                }]
               }
             }
             
@@ -183,36 +192,23 @@ export function useTickets() {
 
       // 4. Si on change de technicien, gérer les assignations multi-techniciens
       if (technicianId !== undefined) {
-        // Récupérer le ticket actuel pour voir s'il avait un autre technicien
-        const currentTicket = tickets.find(t => t.id === id)
+        // Pour un changement de technicien (drag & drop), on veut remplacer complètement
+        // toutes les assignations existantes par le nouveau technicien
         
-        if (currentTicket && currentTicket.technician_id && currentTicket.technician_id !== technicianId) {
-          // Supprimer l'ancienne assignation si elle existe
-          await supabase
-            .from('ticket_technicians')
-            .delete()
-            .eq('ticket_id', id)
-            .eq('technician_id', currentTicket.technician_id)
-        }
-        
-        // Vérifier si le nouveau technicien est déjà dans ticket_technicians
-        const { data: existingAssignment } = await supabase
+        // Supprimer TOUTES les assignations existantes pour ce ticket
+        await supabase
           .from('ticket_technicians')
-          .select('*')
+          .delete()
           .eq('ticket_id', id)
-          .eq('technician_id', technicianId)
-          .single()
         
-        // Si pas déjà assigné, l'ajouter
-        if (!existingAssignment) {
-          await supabase
-            .from('ticket_technicians')
-            .insert({
-              ticket_id: id,
-              technician_id: technicianId,
-              is_primary: true
-            })
-        }
+        // Ajouter la nouvelle assignation
+        await supabase
+          .from('ticket_technicians')
+          .insert({
+            ticket_id: id,
+            technician_id: technicianId,
+            is_primary: true
+          })
       }
 
       // Note: Pas de fetchTickets() ici - on garde l'état local optimiste
