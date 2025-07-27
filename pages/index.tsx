@@ -245,7 +245,7 @@ const ModernHome: NextPage = () => {
     }
     
     // Si une heure spécifique est définie, vérifier la disponibilité horaire
-    if (ticket.hour !== null && ticket.hour !== -1) {
+    if (ticket.hour !== null && ticket.hour !== undefined && ticket.hour !== -1) {
       const isAvailable = isHourAvailable(ticket.hour, ticket.date, schedules, technicianId)
       if (!isAvailable) {
         alert(`Ce technicien n'est pas disponible à ${ticket.hour}h00 le ${new Date(ticket.date).toLocaleDateString('fr-FR')}.`)
