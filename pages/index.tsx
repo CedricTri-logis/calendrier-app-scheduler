@@ -103,8 +103,11 @@ const ModernHome: NextPage = () => {
     const dateString = formatDateForDB(dropDate)
     const hour = ticket.hour ?? -1
     
-    // Si un technicien est sélectionné, assigner automatiquement le ticket à ce technicien
-    const technicianIdToAssign = selectedTechnicianId !== null ? selectedTechnicianId : ticket.technician_id
+    // Si un technicien est sélectionné ET qu'on n'est pas en vue multi-tech, assigner automatiquement le ticket à ce technicien
+    // En vue multi-tech, toujours utiliser le technician_id du ticket (qui vient de la colonne où on a déposé)
+    const technicianIdToAssign = (viewMode !== 'multitech' && selectedTechnicianId !== null) 
+      ? selectedTechnicianId 
+      : ticket.technician_id
     
     // Vérifier la disponibilité
     const availabilityStatus = getDateAvailabilityStatus(dateString, schedules, technicianIdToAssign)

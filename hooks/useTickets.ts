@@ -181,6 +181,40 @@ export function useTickets() {
 
       if (error) throw error
 
+      // 4. Si on change de technicien, gérer les assignations multi-techniciens
+      if (technicianId !== undefined) {
+        // Récupérer le ticket actuel pour voir s'il avait un autre technicien
+        const currentTicket = tickets.find(t => t.id === id)
+        
+        if (currentTicket && currentTicket.technician_id && currentTicket.technician_id !== technicianId) {
+          // Supprimer l'ancienne assignation si elle existe
+          await supabase
+            .from('ticket_technicians')
+            .delete()
+            .eq('ticket_id', id)
+            .eq('technician_id', currentTicket.technician_id)
+        }
+        
+        // Vérifier si le nouveau technicien est déjà dans ticket_technicians
+        const { data: existingAssignment } = await supabase
+          .from('ticket_technicians')
+          .select('*')
+          .eq('ticket_id', id)
+          .eq('technician_id', technicianId)
+          .single()
+        
+        // Si pas déjà assigné, l'ajouter
+        if (!existingAssignment) {
+          await supabase
+            .from('ticket_technicians')
+            .insert({
+              ticket_id: id,
+              technician_id: technicianId,
+              is_primary: true
+            })
+        }
+      }
+
       // Note: Pas de fetchTickets() ici - on garde l'état local optimiste
       // Le listener temps réel gérera la synchronisation si nécessaire
 
