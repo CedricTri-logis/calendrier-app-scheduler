@@ -1,7 +1,7 @@
 import React from 'react'
 import styles from '../../styles/components/Spinner.module.css'
 
-interface SpinnerProps {
+export interface SpinnerProps {
   size?: 'small' | 'medium' | 'large' | 'xlarge'
   variant?: 'default' | 'dots' | 'pulse' | 'bars'
   color?: 'primary' | 'white' | 'dark'

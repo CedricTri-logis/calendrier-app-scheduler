@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import styles from '../../styles/components/Modal.module.css'
 
-interface ModalProps {
+export interface ModalProps {
   isOpen: boolean
   onClose: () => void
   children: React.ReactNode
