@@ -106,7 +106,7 @@ class MultiTechnicianTestSuite {
     })
     this.addResult(
       'Normalisation ticket sans technicien',
-      normalized1.technician_name === 'Non assigné' && normalized1.technicians.length === 0
+      normalized1.technician_name === 'Non assigné' && (normalized1.technicians?.length ?? 0) === 0
     )
     
     // Test 1.2: Ticket avec ancien système
@@ -119,7 +119,7 @@ class MultiTechnicianTestSuite {
     })
     this.addResult(
       'Normalisation ticket ancien système',
-      normalized2.technicians.length === 1 && normalized2.technicians[0].is_primary === true
+      (normalized2.technicians?.length ?? 0) === 1 && normalized2.technicians?.[0]?.is_primary === true
     )
     
     // Test 1.3: Ticket avec nouveau système
@@ -134,7 +134,7 @@ class MultiTechnicianTestSuite {
     })
     this.addResult(
       'Normalisation ticket nouveau système',
-      normalized3.technicians.length === 2 && 
+      (normalized3.technicians?.length ?? 0) === 2 && 
       normalized3.technician_id === 1 &&
       normalized3.technician_name === 'Jean'
     )
@@ -344,12 +344,12 @@ class MultiTechnicianTestSuite {
     
     // 3. Ajouter le technicien
     if (canAdd.canAdd) {
-      ticket.technicians.push({ ...this.techniciens[1], is_primary: false })
+      ticket.technicians?.push({ ...this.techniciens[1], is_primary: false })
     }
     
     this.addResult(
       'Scénario ajout de technicien complet',
-      hasMultipleTechnicians(ticket) && ticket.technicians.length === 2
+      hasMultipleTechnicians(ticket) && (ticket.technicians?.length ?? 0) === 2
     )
     
     // Scénario 2: Workflow de retrait
@@ -361,12 +361,12 @@ class MultiTechnicianTestSuite {
     
     // 3. Retirer le technicien
     if (canRemove.canRemove) {
-      ticket.technicians = ticket.technicians.filter(t => t.id !== 2)
+      ticket.technicians = ticket.technicians?.filter(t => t.id !== 2) ?? []
     }
     
     this.addResult(
       'Scénario retrait de technicien complet',
-      !hasMultipleTechnicians(ticket) && ticket.technicians.length === 1
+      !hasMultipleTechnicians(ticket) && (ticket.technicians?.length ?? 0) === 1
     )
   }
   
