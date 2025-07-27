@@ -134,8 +134,15 @@ const ModernHome: NextPage = () => {
       }
     }
     
-    // Mettre à jour dans Supabase avec le technicien
-    await updateTicketPosition(ticket.id, dateString, hour, technicianIdToAssign)
+    // Mettre à jour dans Supabase
+    // En vue multi-tech, toujours passer le technicien car on veut changer de colonne
+    // Dans les autres vues, ne passer le technicien que si on change vraiment
+    if (viewMode === 'multitech' || ticket.technician_id !== technicianIdToAssign) {
+      await updateTicketPosition(ticket.id, dateString, hour, technicianIdToAssign)
+    } else {
+      // Si on ne change pas de technicien (dans les autres vues), ne pas passer le paramètre
+      await updateTicketPosition(ticket.id, dateString, hour)
+    }
   }
 
   // Ajouter un nouveau ticket

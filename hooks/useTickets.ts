@@ -151,22 +151,25 @@ export function useTickets() {
             
             // Si un technicien est fourni, mettre à jour aussi les infos technicien
             if (technicianId !== undefined) {
-              updatedTicket.technician_id = technicianId
-              
-              // Trouver les infos du nouveau technicien
-              const newTechnician = (window as any).__technicians?.find((t: any) => t.id === technicianId)
-              if (newTechnician) {
-                updatedTicket.technician_name = newTechnician.name
-                updatedTicket.technician_color = newTechnician.color
+              // Ne changer les techniciens que si on change vraiment de technicien principal
+              if (ticket.technician_id !== technicianId) {
+                updatedTicket.technician_id = technicianId
                 
-                // Remplacer complètement le tableau des techniciens par le nouveau
-                updatedTicket.technicians = [{
-                  id: newTechnician.id,
-                  name: newTechnician.name,
-                  color: newTechnician.color,
-                  active: newTechnician.active || true,
-                  is_primary: true
-                }]
+                // Trouver les infos du nouveau technicien
+                const newTechnician = (window as any).__technicians?.find((t: any) => t.id === technicianId)
+                if (newTechnician) {
+                  updatedTicket.technician_name = newTechnician.name
+                  updatedTicket.technician_color = newTechnician.color
+                  
+                  // Remplacer complètement le tableau des techniciens par le nouveau
+                  updatedTicket.technicians = [{
+                    id: newTechnician.id,
+                    name: newTechnician.name,
+                    color: newTechnician.color,
+                    active: newTechnician.active || true,
+                    is_primary: true
+                  }]
+                }
               }
             }
             
@@ -192,29 +195,32 @@ export function useTickets() {
 
       // 4. Si on change de technicien, gérer les assignations multi-techniciens
       if (technicianId !== undefined) {
-        // Pour un changement de technicien (drag & drop), on veut remplacer complètement
-        // toutes les assignations existantes par le nouveau technicien
+        const currentTicket = tickets.find(t => t.id === id)
         
-        // Supprimer TOUTES les assignations existantes pour ce ticket
-        await supabase
-          .from('ticket_technicians')
-          .delete()
-          .eq('ticket_id', id)
-        
-        // Ajouter la nouvelle assignation
-        await supabase
-          .from('ticket_technicians')
-          .insert({
-            ticket_id: id,
-            technician_id: technicianId,
-            is_primary: true
-          })
+        // Ne modifier les assignations que si on change vraiment de technicien principal
+        if (currentTicket && currentTicket.technician_id !== technicianId) {
+          // Pour un changement de technicien (drag & drop), on veut remplacer complètement
+          // toutes les assignations existantes par le nouveau technicien
+          
+          // Supprimer TOUTES les assignations existantes pour ce ticket
+          await supabase
+            .from('ticket_technicians')
+            .delete()
+            .eq('ticket_id', id)
+          
+          // Ajouter la nouvelle assignation
+          await supabase
+            .from('ticket_technicians')
+            .insert({
+              ticket_id: id,
+              technician_id: technicianId,
+              is_primary: true
+            })
+        }
       }
 
-      // Si on a changé de technicien, on doit recharger pour avoir les bonnes relations
-      if (technicianId !== undefined) {
-        await fetchTickets()
-      }
+      // Note: Pas de fetchTickets() ici - on garde l'état local optimiste
+      // Le listener temps réel gérera la synchronisation si nécessaire
 
       return true
     } catch (err) {
