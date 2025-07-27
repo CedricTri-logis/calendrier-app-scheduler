@@ -142,12 +142,20 @@ const ModernHome: NextPage = () => {
     }
     
     // Mettre à jour dans Supabase
-    // En vue multi-tech, on ne doit PAS changer l'assignation des techniciens
-    // On doit seulement changer la date et l'heure
     if (viewMode === 'multiTech') {
-      // En vue multi-tech, ne jamais changer les assignations de techniciens
-      // Seulement mettre à jour la date et l'heure
-      await updateTicketPosition(ticket.id, dateString, hour)
+      // En vue multi-tech, vérifier si le ticket a plusieurs techniciens
+      const originalTicket = tickets.find(t => t.id === ticket.id)
+      const hasMultipleTechnicians = originalTicket && originalTicket.technicians && originalTicket.technicians.length > 1
+      
+      if (hasMultipleTechnicians) {
+        // Si le ticket a plusieurs techniciens, ne jamais changer les assignations
+        // Seulement mettre à jour la date et l'heure
+        await updateTicketPosition(ticket.id, dateString, hour)
+      } else {
+        // Si le ticket n'a qu'un seul technicien, permettre le changement de technicien
+        // (technicianIdToAssign vient de la colonne où on a déposé le ticket)
+        await updateTicketPosition(ticket.id, dateString, hour, technicianIdToAssign)
+      }
     } else if (ticket.technician_id !== technicianIdToAssign) {
       // Dans les autres vues, changer le technicien si nécessaire
       await updateTicketPosition(ticket.id, dateString, hour, technicianIdToAssign)
