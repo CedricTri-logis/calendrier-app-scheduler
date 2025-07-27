@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import styles from './ModernMultiTechView.module.css'
 import ModernTicket from './ModernTicket'
 import { Schedule } from '../hooks/useSchedules'
@@ -9,6 +9,21 @@ import {
   getScheduleTypeLabel,
   getScheduleTypeColor 
 } from '../utils/scheduleHelpers'
+import { getTechnicianAllDayTickets, getTechnicianTicketsAtHour, getTimedTickets } from '../utils/ticketFiltering'
+import { 
+  extractDropCoordinates,
+  coordinatesToTime,
+  getTechnicianIdFromCoordinates,
+  validateDropPosition,
+  generateDropPreview,
+  DROP_CONFIG
+} from '../utils/dropHelpers'
+import { 
+  calculateOverlapInfo,
+  calculateTicketStyles,
+  getDisplayInfo
+} from '../utils/overlapHelpers'
+import { formatHour } from '../utils/timeFormatHelpers'
 
 interface ModernMultiTechViewProps {
   droppedTickets: { [key: string]: any[] }
@@ -42,6 +57,15 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
   onTicketClick
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [dropPreview, setDropPreview] = useState<{
+    visible: boolean
+    timeDisplay: string
+    isValid: boolean
+    top: number
+    left: number
+    technicianId?: number
+  } | null>(null)
+  const technicianColumnsRef = useRef<HTMLDivElement>(null)
   
   // Mettre à jour l'heure actuelle toutes les minutes
   useEffect(() => {
@@ -100,13 +124,105 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
     return (totalFraction / 11) * 100
   }
   
-  const handleDrop = (e: React.DragEvent, hour: number, technicianId: number) => {
+  // Nouveau système de drop multi-technicien avec coordonnées précises
+  const handlePreciseMultiTechDrop = (e: React.DragEvent) => {
     e.preventDefault()
+    setDropPreview(null)
+    
+    if (!technicianColumnsRef.current) return
+    
+    const coordinates = extractDropCoordinates(e, technicianColumnsRef.current)
+    const timeResult = coordinatesToTime(coordinates.offsetY)
+    
+    // Déterminer quel technicien basé sur la position X
+    const technicianId = getTechnicianIdFromCoordinates(
+      coordinates,
+      activeTechnicians,
+      technicianColumnsRef.current.getBoundingClientRect(),
+      80 // Largeur approximative de la colonne des heures
+    )
+    
+    if (!technicianId) {
+      console.warn('Aucun technicien détecté à cette position')
+      return
+    }
+    
+    // Valider la position de drop
+    const isValid = validateDropPosition(
+      timeResult,
+      schedules,
+      technicianId,
+      getDateKey()
+    )
+    
+    if (!isValid) {
+      console.warn('Drop non valide à cette position')
+      return
+    }
+    
     const ticketData = e.dataTransfer.getData('ticket')
     if (ticketData) {
       const ticket = JSON.parse(ticketData)
-      // Assigner automatiquement le ticket au technicien de la colonne
-      onDrop(currentDate.getDate(), { ...ticket, hour, technician_id: technicianId }, currentDate.getFullYear(), currentDate.getMonth())
+      
+      // Créer le ticket avec les nouvelles coordonnées et le technicien
+      const updatedTicket = {
+        ...ticket,
+        hour: timeResult.isAllDay ? -1 : timeResult.snappedHour,
+        minutes: timeResult.isAllDay ? 0 : timeResult.snappedMinutes,
+        technician_id: technicianId
+      }
+      
+      onDrop(
+        currentDate.getDate(),
+        updatedTicket,
+        currentDate.getFullYear(),
+        currentDate.getMonth()
+      )
+    }
+  }
+  
+  // Gestion du survol pour l'aperçu multi-technicien
+  const handleMultiTechDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    
+    if (!technicianColumnsRef.current) return
+    
+    const coordinates = extractDropCoordinates(e, technicianColumnsRef.current)
+    const timeResult = coordinatesToTime(coordinates.offsetY)
+    const preview = generateDropPreview(timeResult)
+    
+    // Déterminer quel technicien
+    const technicianId = getTechnicianIdFromCoordinates(
+      coordinates,
+      activeTechnicians,
+      technicianColumnsRef.current.getBoundingClientRect(),
+      80
+    )
+    
+    // Calculer la position de l'aperçu
+    let previewTop = coordinates.offsetY
+    if (!timeResult.isAllDay) {
+      // Snap à la position de grille
+      const hoursFromStart = timeResult.snappedHour - DROP_CONFIG.MIN_HOUR
+      const totalMinutes = hoursFromStart * 60 + timeResult.snappedMinutes
+      previewTop = (totalMinutes / 60) * DROP_CONFIG.CELL_HEIGHT + DROP_CONFIG.HEADER_HEIGHT
+    }
+    
+    setDropPreview({
+      visible: true,
+      timeDisplay: preview.timeDisplay,
+      isValid: preview.isValid && !!technicianId,
+      top: previewTop,
+      left: coordinates.offsetX,
+      technicianId: technicianId || undefined
+    })
+  }
+  
+  // Gérer la sortie de la zone de drop
+  const handleMultiTechDragLeave = (e: React.DragEvent) => {
+    // Vérifier si on quitte vraiment le conteneur principal
+    if (!technicianColumnsRef.current?.contains(e.relatedTarget as Node)) {
+      setDropPreview(null)
     }
   }
   
@@ -121,35 +237,19 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
   const dateKey = getDateKey()
   const todayTickets = droppedTickets[dateKey] || []
   
-  // Formater l'heure
-  const formatHour = (hour: number) => {
-    return `${hour}:00`
-  }
+  // Calculer les informations de chevauchement globales
+  const { overlapInfo, groups, hasOverlaps } = getDisplayInfo(todayTickets, true)
+  
+  // Formatage de l'heure géré par timeFormatHelpers
   
   // Fonction pour obtenir les tickets d'un technicien à une heure donnée
-  const getTechnicianTicketsAtHour = (technicianId: number, hour: number) => {
-    return todayTickets.filter(ticket => {
-      // Vérifier si le ticket est assigné à ce technicien
-      const isAssignedToTech = ticket.technician_id === technicianId || 
-        (ticket.technicians && ticket.technicians.some((t: any) => t.id === technicianId))
-      
-      // Vérifier si le ticket est à cette heure
-      const isAtThisHour = ticket.hour === hour
-      
-      return isAssignedToTech && isAtThisHour
-    })
+  const getTechnicianTicketsAtHourLocal = (technicianId: number, hour: number) => {
+    return getTechnicianTicketsAtHour(todayTickets, technicianId, hour)
   }
   
   // Obtenir les tickets "toute la journée" pour un technicien
-  const getAllDayTicketsForTechnician = (technicianId: number) => {
-    return todayTickets.filter(ticket => {
-      const isAssignedToTech = ticket.technician_id === technicianId || 
-        (ticket.technicians && ticket.technicians.some((t: any) => t.id === technicianId))
-      
-      const isAllDay = !ticket.hour || ticket.hour === -1
-      
-      return isAssignedToTech && isAllDay
-    })
+  const getAllDayTicketsForTechnicianLocal = (technicianId: number) => {
+    return getTechnicianAllDayTickets(todayTickets, technicianId)
   }
   
   const timelinePosition = getCurrentTimePosition()
@@ -185,8 +285,14 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
           ))}
         </div>
         
-        {/* Colonnes des techniciens */}
-        <div className={styles.technicianColumns}>
+        {/* Colonnes des techniciens avec système de drop précis */}
+        <div 
+          ref={technicianColumnsRef}
+          className={styles.technicianColumns}
+          onDrop={handlePreciseMultiTechDrop}
+          onDragOver={handleMultiTechDragOver}
+          onDragLeave={handleMultiTechDragLeave}
+        >
           {/* Ligne de temps actuelle */}
           {isToday() && timelinePosition >= 0 && (
             <div 
@@ -197,6 +303,34 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
               <div className={styles.currentTimeText}>
                 {currentTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
               </div>
+            </div>
+          )}
+          
+          {/* Aperçu de drop multi-technicien */}
+          {dropPreview && dropPreview.visible && (
+            <div 
+              className={`${styles.dropPreview} ${dropPreview.isValid ? styles.dropPreviewValid : styles.dropPreviewInvalid}`}
+              style={{
+                top: `${dropPreview.top}px`,
+                left: `${dropPreview.left}px`,
+                position: 'absolute',
+                pointerEvents: 'none',
+                backgroundColor: dropPreview.isValid ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                border: `2px solid ${dropPreview.isValid ? '#22c55e' : '#ef4444'}`,
+                borderRadius: '4px',
+                padding: '4px 8px',
+                fontSize: '12px',
+                fontWeight: '500',
+                color: dropPreview.isValid ? '#15803d' : '#dc2626',
+                zIndex: 1000
+              }}
+            >
+              {dropPreview.timeDisplay}
+              {dropPreview.technicianId && (
+                <div style={{ fontSize: '10px', opacity: 0.8 }}>
+                  {activeTechnicians.find(t => t.id === dropPreview.technicianId)?.name}
+                </div>
+              )}
             </div>
           )}
           
@@ -225,12 +359,8 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
                 </div>
                 
                 {/* Zone toute la journée */}
-                <div 
-                  className={styles.allDayCell}
-                  onDrop={(e) => handleDrop(e, -1, technician.id)}
-                  onDragOver={onDragOver}
-                >
-                  {getAllDayTicketsForTechnician(technician.id).map((ticket) => (
+                <div className={styles.allDayCell}>
+                  {getAllDayTicketsForTechnicianLocal(technician.id).map((ticket) => (
                     <ModernTicket
                       key={ticket.id}
                       id={ticket.id}
@@ -240,6 +370,7 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
                       technician_name={ticket.technician_name}
                       technician_color={ticket.technician_color}
                       technicians={ticket.technicians}
+                      estimated_duration={ticket.estimated_duration}
                       onDragStart={onDragStart}
                       onAddTechnician={onAddTechnician}
                       onRemoveTechnician={onRemoveTechnician}
@@ -254,44 +385,65 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
                 {/* Cellules horaires */}
                 {hours.map((hour) => {
                   const isAvailable = isHourAvailable(hour, dateKey, schedules, technician.id)
-                  const ticketsAtHour = getTechnicianTicketsAtHour(technician.id, hour)
+                  const ticketsAtHour = getTechnicianTicketsAtHourLocal(technician.id, hour)
                   
                   return (
                     <div
                       key={`${technician.id}-${hour}`}
-                      className={`${styles.hourCell} ${!isAvailable ? styles.unavailableHour : ''}`}
-                      onDrop={(e) => {
-                        e.preventDefault()
-                        if (isAvailable) {
-                          handleDrop(e, hour, technician.id)
-                        }
-                      }}
-                      onDragOver={(e) => {
-                        e.preventDefault()
-                        if (!isAvailable) {
-                          e.dataTransfer.dropEffect = 'none'
-                        }
-                      }}
+                      className={`${styles.hourCell} ${!isAvailable ? styles.unavailableHour : ''} ${ticketsAtHour.length > 1 ? styles.hasOverlaps : ''}`}
+                      style={{ position: 'relative', height: '80px', overflow: 'visible' }}
                     >
-                      {ticketsAtHour.map((ticket) => (
-                        <ModernTicket
-                          key={ticket.id}
-                          id={ticket.id}
-                          title={ticket.title}
-                          color={ticket.color}
-                          technician_id={ticket.technician_id}
-                          technician_name={ticket.technician_name}
-                          technician_color={ticket.technician_color}
-                          technicians={ticket.technicians}
-                          onDragStart={onDragStart}
-                          onAddTechnician={onAddTechnician}
-                          onRemoveTechnician={onRemoveTechnician}
-                          onTicketClick={onTicketClick}
-                          isCompact={true}
-                          showActions={true}
-                          isPlanned={true}
-                        />
-                      ))}
+                      {/* Lignes de quart d'heure */}
+                      <div className={styles.quarterLines}>
+                        <div className={`${styles.quarterLine} ${styles.quarter15}`} />
+                        <div className={`${styles.quarterLine} ${styles.quarter45}`} />
+                      </div>
+                      {ticketsAtHour.map((ticket) => {
+                        // Calculer la position verticale basée sur les minutes
+                        const minuteOffset = (ticket.minutes || 0) / 60 * 80 // 80px pour une heure
+                        const ticketOverlapInfo = overlapInfo.get(ticket.id)
+                        let customStyles: React.CSSProperties = {
+                          position: 'absolute',
+                          top: `${minuteOffset}px`,
+                          left: '4px',
+                          right: '4px',
+                          zIndex: 10
+                        }
+                        
+                        // Appliquer le positionnement en colonnes si nécessaire
+                        if (ticketOverlapInfo && hasOverlaps && ticketsAtHour.length > 1) {
+                          const overlapStyles = calculateTicketStyles(ticket, ticketOverlapInfo, 80)
+                          customStyles = {
+                            ...overlapStyles,
+                            position: 'absolute',
+                            top: `${minuteOffset}px`,
+                            zIndex: 10
+                          }
+                        }
+                        
+                        return (
+                          <ModernTicket
+                            key={ticket.id}
+                            id={ticket.id}
+                            title={ticket.title}
+                            color={ticket.color}
+                            technician_id={ticket.technician_id}
+                            technician_name={ticket.technician_name}
+                            technician_color={ticket.technician_color}
+                            technicians={ticket.technicians}
+                            estimated_duration={ticket.estimated_duration}
+                            onDragStart={onDragStart}
+                            onAddTechnician={onAddTechnician}
+                            onRemoveTechnician={onRemoveTechnician}
+                            onTicketClick={onTicketClick}
+                            isCompact={true}
+                            showActions={true}
+                            isPlanned={true}
+                            overlapInfo={ticketOverlapInfo}
+                            customStyles={customStyles}
+                          />
+                        )
+                      })}
                     </div>
                   )
                 })}
