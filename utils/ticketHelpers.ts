@@ -177,3 +177,33 @@ export function canRemoveTechnician(ticket: Ticket, technicianId: number): {
   
   return { canRemove: true }
 }
+
+/**
+ * Convertit une heure et des minutes en index de créneau (0 = 0h00, 1 = 0h15, etc.)
+ */
+export function getSlotIndex(hour: number, minutes: number = 0): number {
+  return hour * 4 + Math.floor(minutes / 15)
+}
+
+/**
+ * Convertit un index de créneau en heure et minutes
+ */
+export function getTimeFromSlot(slotIndex: number): { hour: number; minutes: number } {
+  const hour = Math.floor(slotIndex / 4)
+  const minutes = (slotIndex % 4) * 15
+  return { hour, minutes }
+}
+
+/**
+ * Arrondit au quart d'heure le plus proche
+ */
+export function snapToQuarterHour(minutes: number): number {
+  return Math.round(minutes / 15) * 15
+}
+
+/**
+ * Calcule le nombre de créneaux nécessaires pour une durée donnée
+ */
+export function getDurationSlots(durationMinutes: number): number {
+  return Math.ceil(durationMinutes / 15)
+}
