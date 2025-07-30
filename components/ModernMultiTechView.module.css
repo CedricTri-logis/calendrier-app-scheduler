@@ -65,6 +65,8 @@
   position: relative;
   /* background: #f8f9fa; -- Retiré car cause le fond gris après 14h */
   background: white;
+  min-height: 100%;
+  align-items: stretch;
 }
 
 /* Colonne des heures */
@@ -111,6 +113,7 @@
   flex: 1;
   position: relative;
   min-width: 0;
+  align-items: stretch; /* Force les enfants à s'étirer */
 }
 
 .technicianColumn {
@@ -119,7 +122,8 @@
   max-width: 300px;
   border-right: 1px solid #e0e0e0;
   background: white;
-  min-height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .technicianColumn:last-child {
