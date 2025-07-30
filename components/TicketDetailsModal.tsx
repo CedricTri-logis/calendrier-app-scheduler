@@ -49,7 +49,7 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
   useEffect(() => {
     if (!isOpen) {
       setDescription('')
-      setEstimatedDuration('')
+      setEstimatedDuration(30)
       setEditedDate('')
       setEditedTime('')
       setIsSaving(false)
