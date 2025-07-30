@@ -32,7 +32,7 @@ export const ScheduleSchema = z.object({
   id: z.number(),
   technician_id: z.number(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  schedule_type: z.enum(['work', 'vacation', 'sick_leave', 'break', 'other']),
+  type: z.enum(['available', 'unavailable', 'vacation', 'sick_leave', 'break']),
   start_hour: z.number().min(0).max(23),
   end_hour: z.number().min(0).max(24),
   description: z.string().optional()
@@ -133,8 +133,8 @@ export class ValidationService {
   /**
    * Formate les erreurs de validation pour l'affichage
    */
-  static formatValidationErrors(errors: z.ZodError): string[] {
-    return errors.errors.map(err => {
+  static formatValidationErrors(errors: z.ZodError<any>): string[] {
+    return errors.issues.map(err => {
       const field = err.path.join('.')
       return `${field}: ${err.message}`
     })
@@ -143,8 +143,8 @@ export class ValidationService {
   /**
    * Obtient le premier message d'erreur
    */
-  static getFirstErrorMessage(errors: z.ZodError): string {
-    const firstError = errors.errors[0]
+  static getFirstErrorMessage(errors: z.ZodError<any>): string {
+    const firstError = errors.issues[0]
     if (!firstError) return 'Erreur de validation'
     
     return firstError.message

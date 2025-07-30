@@ -5,7 +5,7 @@ import { getDateAvailabilityStatus } from '../utils/scheduleHelpers'
 export interface TechnicianAvailability {
   technicianId: number
   technicianName: string
-  status: 'available' | 'partial' | 'unavailable'
+  status: 'available' | 'partial' | 'unavailable' | 'unknown'
   statusEmoji: string
   scheduleTypes?: string[]
 }
@@ -30,7 +30,7 @@ export class TechnicianService {
     const daySchedules = schedules.filter(s => 
       s.technician_id === technician.id && s.date === date
     )
-    const scheduleTypes = daySchedules.map(s => s.schedule_type)
+    const scheduleTypes = daySchedules.map(s => s.type)
     
     return {
       technicianId: technician.id,
@@ -76,8 +76,11 @@ export class TechnicianService {
         
         // Vérifier si l'heure est dans une plage disponible
         const isHourAvailable = daySchedules.some(schedule => {
-          if (schedule.schedule_type === 'work') {
-            return hour >= schedule.start_hour && hour < schedule.end_hour
+          if (schedule.type === 'available') {
+            // Parse les heures depuis start_time et end_time
+            const startHour = parseInt(schedule.start_time.split(':')[0])
+            const endHour = parseInt(schedule.end_time.split(':')[0])
+            return hour >= startHour && hour < endHour
           }
           return false
         })

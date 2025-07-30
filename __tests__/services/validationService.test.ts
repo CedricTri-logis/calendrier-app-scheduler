@@ -28,7 +28,7 @@ describe('ValidationService', () => {
       const result = ValidationService.validateTicket(invalidTicket)
       
       expect(result.success).toBe(false)
-      expect(result.errors?.errors[0].message).toContain('requis')
+      expect(result.errors?.issues[0].message).toContain('requis')
     })
     
     it('should reject ticket with invalid color', () => {
@@ -40,7 +40,7 @@ describe('ValidationService', () => {
       const result = ValidationService.validateTicket(invalidTicket)
       
       expect(result.success).toBe(false)
-      expect(result.errors?.errors[0].message).toContain('hexadécimal')
+      expect(result.errors?.issues[0].message).toContain('hexadécimal')
     })
     
     it('should reject ticket with title too long', () => {
@@ -52,7 +52,7 @@ describe('ValidationService', () => {
       const result = ValidationService.validateTicket(invalidTicket)
       
       expect(result.success).toBe(false)
-      expect(result.errors?.errors[0].message).toContain('255 caractères')
+      expect(result.errors?.issues[0].message).toContain('255 caractères')
     })
     
     it('should validate ticket with optional fields', () => {
@@ -81,7 +81,7 @@ describe('ValidationService', () => {
       const result = ValidationService.validateTicket(invalidTicket)
       
       expect(result.success).toBe(false)
-      expect(result.errors?.errors[0].message).toContain('multiple de 15')
+      expect(result.errors?.issues[0].message).toContain('multiple de 15')
     })
   })
   
@@ -120,7 +120,7 @@ describe('ValidationService', () => {
         id: 1,
         technician_id: 1,
         date: '2024-01-01',
-        schedule_type: 'work' as const,
+        type: 'available' as const,
         start_hour: 8,
         end_hour: 17
       }
@@ -136,7 +136,7 @@ describe('ValidationService', () => {
         id: 1,
         technician_id: 1,
         date: '01/01/2024', // Wrong format
-        schedule_type: 'work' as const,
+        type: 'available' as const,
         start_hour: 8,
         end_hour: 17
       }
@@ -151,7 +151,7 @@ describe('ValidationService', () => {
         id: 1,
         technician_id: 1,
         date: '2024-01-01',
-        schedule_type: 'invalid-type',
+        type: 'invalid-type' as any,
         start_hour: 8,
         end_hour: 17
       }
@@ -166,7 +166,7 @@ describe('ValidationService', () => {
         id: 1,
         technician_id: 1,
         date: '2024-01-01',
-        schedule_type: 'work' as const,
+        type: 'available' as const,
         start_hour: 25, // Invalid
         end_hour: 17
       }
@@ -242,7 +242,7 @@ describe('ValidationService', () => {
         
         expect(formatted).toBeInstanceOf(Array)
         expect(formatted.length).toBeGreaterThan(0)
-        expect(formatted[0]).toContain(':')
+        expect(formatted.some(f => f.includes(':'))).toBe(true)
       }
     })
   })
