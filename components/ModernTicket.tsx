@@ -166,7 +166,8 @@ const ModernTicket: React.FC<ModernTicketProps> = ({
 
   return (
     <div
-      className={`${styles.ticket} ${styles[getColorClass()]} ${isCompact ? styles.compact : ''}`}
+      className={`${styles.ticket} ${isCompact ? styles.compact : ''}`}
+      style={{ backgroundColor: color }}
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}

@@ -12,17 +12,16 @@
   justify-content: space-between;
   gap: var(--spacing-sm);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  border: 1px solid transparent;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   min-height: 44px;
-  background-color: var(--ticket-bg);
-  color: var(--ticket-text);
+  color: #333;
   font-size: 14px;
 }
 
 .ticket:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-sm);
-  border-color: var(--ticket-border);
+  border-color: rgba(0, 0, 0, 0.2);
   z-index: 20;
 }
 
