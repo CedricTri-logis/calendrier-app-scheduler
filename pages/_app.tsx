@@ -3,6 +3,8 @@ import '../styles/modern-theme.css'
 import type { AppProps } from 'next/app'
 import { useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { ToastProvider } from '../contexts/ToastContext'
+import ToastWrapper from '../components/Toast/ToastWrapper'
 
 function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
@@ -26,7 +28,12 @@ function MyApp({ Component, pageProps }: AppProps) {
     checkConnection()
   }, [])
   
-  return <Component {...pageProps} />
+  return (
+    <ToastProvider>
+      <Component {...pageProps} />
+      <ToastWrapper />
+    </ToastProvider>
+  )
 }
 
 export default MyApp

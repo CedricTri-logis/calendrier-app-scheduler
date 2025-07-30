@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import Modal from './ui/Modal'
 import styles from './TicketDetailsModal.module.css'
 import { Ticket, getDurationOptions } from '../utils/ticketHelpers'
+import { useToast } from '../contexts/ToastContext'
 
 interface TicketDetailsModalProps {
   isOpen: boolean
@@ -18,6 +19,7 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
   onSave,
   loading = false
 }) => {
+  const { showError } = useToast()
   const [description, setDescription] = useState('')
   const [estimatedDuration, setEstimatedDuration] = useState<number>(30)
   const [editedDate, setEditedDate] = useState('')
@@ -66,7 +68,7 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
       
       // Validation
       if (desc && desc.length > 500) {
-        alert('La description ne peut pas dépasser 500 caractères')
+        showError('La description ne peut pas dépasser 500 caractères')
         return
       }
 
@@ -76,7 +78,7 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
       }
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error)
-      alert('Erreur lors de la sauvegarde des détails du ticket')
+      showError('Erreur lors de la sauvegarde des détails du ticket')
     } finally {
       setIsSaving(false)
     }

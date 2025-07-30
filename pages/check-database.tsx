@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import styles from '../styles/Home.module.css'
+import { useToast } from '../contexts/ToastContext'
 
 export default function CheckDatabase() {
+  const { showSuccess } = useToast()
   const [checking, setChecking] = useState(false)
   const [result, setResult] = useState<any>(null)
   const [showSql, setShowSql] = useState(false)
@@ -31,7 +33,7 @@ export default function CheckDatabase() {
   const copySql = () => {
     if (result?.sqlToExecute) {
       navigator.clipboard.writeText(result.sqlToExecute)
-      alert('SQL copié dans le presse-papier!')
+      showSuccess('SQL copié dans le presse-papier!')
     }
   }
 

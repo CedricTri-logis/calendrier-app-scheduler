@@ -7,8 +7,10 @@ import TicketSidebar from "../components/Sidebar/TicketSidebar"
 import CalendarContainer from "../components/Calendar/CalendarContainer"
 import TicketDetailsModal from "../components/TicketDetailsModal"
 import { LoadingContainer } from "../components/ui/Spinner"
+import { useToast } from "../contexts/ToastContext"
 
 const ModernHomeContent: React.FC = () => {
+  const { showError } = useToast()
   const state = useCalendarState()
   const { 
     updateTicketDetails, 
@@ -63,9 +65,9 @@ const ModernHomeContent: React.FC = () => {
   const handleRemoveTechnicianFromSidebar = useCallback(async (ticketId: number, technicianId: number) => {
     const result = await removeTechnicianFromTicket(ticketId, technicianId)
     if (!result.success) {
-      alert(`Erreur lors du retrait du technicien: ${result.error}`)
+      showError(`Erreur lors du retrait du technicien: ${result.error}`)
     }
-  }, [removeTechnicianFromTicket])
+  }, [removeTechnicianFromTicket, showError])
   
   if (loading) {
     return (

@@ -10,6 +10,7 @@ import { useCalendarState, useCalendarActions } from '../../contexts/CalendarCon
 import { formatDateForDB } from '../../utils/dateHelpers'
 import { getDateAvailabilityStatus, isHourAvailable } from '../../utils/scheduleHelpers'
 import { filterTicketsByTechnician } from '../../utils/ticketHelpers'
+import { useToast } from '../../contexts/ToastContext'
 
 interface CalendarContainerProps {
   onDragStart: (e: React.DragEvent, ticketId: number) => void
@@ -17,6 +18,7 @@ interface CalendarContainerProps {
 }
 
 export default function CalendarContainer({ onDragStart, onDragOver }: CalendarContainerProps) {
+  const { showError, showWarning } = useToast()
   const state = useCalendarState()
   const { 
     updateTicketPosition, 
@@ -70,7 +72,7 @@ export default function CalendarContainer({ onDragStart, onDragOver }: CalendarC
     const availabilityStatus = getDateAvailabilityStatus(dateString, schedules, technicianIdToAssign)
     
     if (availabilityStatus === 'unavailable') {
-      alert('Ce technicien n\'est pas disponible à cette date.')
+      showWarning('Ce technicien n\'est pas disponible à cette date.')
       return
     }
     
@@ -78,7 +80,7 @@ export default function CalendarContainer({ onDragStart, onDragOver }: CalendarC
     if (hour !== -1 && technicianIdToAssign) {
       const isAvailable = isHourAvailable(hour, dateString, schedules, technicianIdToAssign)
       if (!isAvailable) {
-        alert(`Ce technicien n'est pas disponible à ${hour}h00 le ${dropDate.toLocaleDateString('fr-FR')}.`)
+        showWarning(`Ce technicien n'est pas disponible à ${hour}h00 le ${dropDate.toLocaleDateString('fr-FR')}.`)
         return
       }
     }
@@ -140,7 +142,7 @@ export default function CalendarContainer({ onDragStart, onDragOver }: CalendarC
   const handleRemoveTechnician = useCallback(async (ticketId: number, technicianId: number) => {
     const result = await removeTechnicianFromTicket(ticketId, technicianId)
     if (!result.success) {
-      alert(`Erreur lors du retrait du technicien: ${result.error}`)
+      showError(`Erreur lors du retrait du technicien: ${result.error}`)
     }
   }, [removeTechnicianFromTicket])
   
@@ -155,7 +157,7 @@ export default function CalendarContainer({ onDragStart, onDragOver }: CalendarC
     
     const ticket = tickets.find(t => t.id === technicianAddPopup.ticketId)
     if (!ticket || !ticket.date) {
-      alert('Erreur: Ticket introuvable ou non planifié')
+      showError('Erreur: Ticket introuvable ou non planifié')
       dispatch({ type: 'SET_TECHNICIAN_ADD_POPUP', payload: null })
       return
     }
@@ -164,7 +166,7 @@ export default function CalendarContainer({ onDragStart, onDragOver }: CalendarC
     const availabilityStatus = getDateAvailabilityStatus(ticket.date, schedules, technicianId)
     
     if (availabilityStatus === 'unavailable') {
-      alert('Ce technicien n\'est pas disponible à cette date.')
+      showWarning('Ce technicien n\'est pas disponible à cette date.')
       return
     }
     
@@ -172,7 +174,7 @@ export default function CalendarContainer({ onDragStart, onDragOver }: CalendarC
     if (ticket.hour !== null && ticket.hour !== undefined && ticket.hour !== -1) {
       const isAvailable = isHourAvailable(ticket.hour, ticket.date, schedules, technicianId)
       if (!isAvailable) {
-        alert(`Ce technicien n'est pas disponible à ${ticket.hour}h00 le ${new Date(ticket.date).toLocaleDateString('fr-FR')}.`)
+        showWarning(`Ce technicien n'est pas disponible à ${ticket.hour}h00 le ${new Date(ticket.date).toLocaleDateString('fr-FR')}.`)
         return
       }
     }
@@ -187,7 +189,7 @@ export default function CalendarContainer({ onDragStart, onDragOver }: CalendarC
     
     const result = await addTechnicianToTicket(technicianAddPopup.ticketId, technicianId, false)
     if (!result.success) {
-      alert(`Erreur lors de l'ajout du technicien: ${result.error}`)
+      showError(`Erreur lors de l'ajout du technicien: ${result.error}`)
     }
     
     dispatch({ type: 'SET_TECHNICIAN_ADD_POPUP', payload: null })

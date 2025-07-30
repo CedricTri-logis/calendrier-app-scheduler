@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import styles from '../styles/Home.module.css'
+import { useToast } from '../contexts/ToastContext'
 
 export default function DatabaseStatus() {
+  const { showSuccess } = useToast()
   const [status, setStatus] = useState<any>({
     checking: true,
     tables: {},
@@ -246,7 +248,7 @@ CREATE POLICY "Read for all" ON schedules FOR SELECT USING (true);`
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(sqlToExecute)
-                        alert('✅ SQL copié dans le presse-papier!')
+                        showSuccess('SQL copié dans le presse-papier!')
                       }}
                       style={{
                         padding: '0.75rem 1.5rem',

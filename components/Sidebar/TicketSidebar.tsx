@@ -6,6 +6,7 @@ import Input from '../ui/Input'
 import { useCalendar, useCalendarState, useCalendarActions } from '../../contexts/CalendarContext'
 import { formatDateForDB } from '../../utils/dateHelpers'
 import { getDateAvailabilityStatus } from '../../utils/scheduleHelpers'
+import { useToast } from '../../contexts/ToastContext'
 
 interface TicketSidebarProps {
   onDragStart: (e: React.DragEvent, ticketId: number) => void
@@ -21,6 +22,7 @@ const colorOptions = [
 ]
 
 export default function TicketSidebar({ onDragStart, onRemoveTicket }: TicketSidebarProps) {
+  const { showError } = useToast()
   const state = useCalendarState()
   const { createTicket, deleteTicket, removeTechnicianFromTicket, dispatch } = useCalendarActions()
   
@@ -95,9 +97,9 @@ export default function TicketSidebar({ onDragStart, onRemoveTicket }: TicketSid
   const handleRemoveTechnician = useCallback(async (ticketId: number, technicianId: number) => {
     const result = await removeTechnicianFromTicket(ticketId, technicianId)
     if (!result.success) {
-      alert(`Erreur lors du retrait du technicien: ${result.error}`)
+      showError(`Erreur lors du retrait du technicien: ${result.error}`)
     }
-  }, [removeTechnicianFromTicket])
+  }, [removeTechnicianFromTicket, showError])
   
   return (
     <aside className={styles.sidebar}>
