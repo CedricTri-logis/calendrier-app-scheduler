@@ -36,9 +36,10 @@ test.describe('Tests Visuels Percy - Calendrier App', () => {
     
     // Scroll pour centrer sur 14h
     await page.evaluate(() => {
-      const element = document.querySelector('.timeLabel:has-text("14:00")')
-      if (element) {
-        element.scrollIntoView({ behavior: 'instant', block: 'center' })
+      const labels = document.querySelectorAll('.timeLabel')
+      const targetLabel = Array.from(labels).find(label => label.textContent?.trim() === '14:00')
+      if (targetLabel) {
+        targetLabel.scrollIntoView({ behavior: 'instant', block: 'center' })
       }
     })
     

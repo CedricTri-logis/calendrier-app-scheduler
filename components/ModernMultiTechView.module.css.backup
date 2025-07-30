@@ -1,0 +1,324 @@
+.multiTechView {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.multiTechView * {
+  box-sizing: border-box;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.dateInfo {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.dayNameLarge {
+  font-size: 24px;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.dateDetails {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.dayNumberLarge {
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.dayNumberLarge.today {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 8px;
+}
+
+.monthYear {
+  font-size: 18px;
+  opacity: 0.9;
+}
+
+.technicianCount {
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+/* Grille principale */
+.mainGrid {
+  display: flex;
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  /* background: #f8f9fa; -- Retiré car cause le fond gris après 14h */
+  background: white;
+  min-height: 100%;
+  align-items: stretch;
+}
+
+/* Colonne des heures */
+.timeColumn {
+  width: 80px;
+  min-width: 80px;
+  background: white;
+  border-right: 1px solid #e0e0e0;
+  position: sticky;
+  left: 0;
+  z-index: 10;
+}
+
+.timeHeader {
+  height: 60px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.allDayLabel {
+  box-sizing: border-box;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f5f5f5;
+}
+
+.timeLabel {
+  box-sizing: border-box;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #666;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* Colonnes des techniciens */
+.technicianColumns {
+  display: flex;
+  flex: 1;
+  position: relative;
+  min-width: 0;
+  align-items: stretch; /* Force les enfants à s'étirer */
+}
+
+.technicianColumn {
+  flex: 1;
+  min-width: 200px;
+  max-width: 300px;
+  border-right: 1px solid #e0e0e0;
+  background: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.technicianColumn:last-child {
+  border-right: none;
+}
+
+/* En-tête technicien */
+.technicianHeader {
+  height: 60px;
+  padding: 12px;
+  border-bottom: 2px solid;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: white;
+}
+
+.technicianName {
+  font-weight: 600;
+  font-size: 15px;
+  color: #333;
+  text-align: center;
+}
+
+.availabilityBadge {
+  font-size: 12px;
+}
+
+.available {
+  color: #22c55e;
+  font-weight: 500;
+}
+
+.partial {
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+.unavailable {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+/* Cellules */
+.allDayCell {
+  box-sizing: border-box;
+  height: 60px;
+  padding: 8px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.slotCell {
+  box-sizing: border-box;
+  height: 20px;
+  padding: 2px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s;
+  display: flex;
+  position: relative;
+}
+
+.slotCell:hover {
+  background: #f5f5f5;
+}
+
+/* Lignes d'heures entières (toutes les 4 cellules) */
+/* nth-child(4n+2) car on a la cellule allDay avant les slots */
+.slotCell:nth-child(4n+2) {
+  border-bottom: 2px solid #d0d0d0;
+}
+
+.unavailableSlot {
+  background: repeating-linear-gradient(
+    45deg,
+    #fafafa,
+    #fafafa 10px,
+    #f5f5f5 10px,
+    #f5f5f5 20px
+  );
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.unavailableSlot:hover {
+  background: repeating-linear-gradient(
+    45deg,
+    #fafafa,
+    #fafafa 10px,
+    #f5f5f5 10px,
+    #f5f5f5 20px
+  );
+}
+
+/* Conteneur pour les tickets avec hauteur variable */
+.ticketContainer {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  top: 2px;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+/* Ligne de temps actuelle */
+.currentTimeLine {
+  position: absolute;
+  left: 80px;
+  right: 0;
+  height: 2px;
+  background: #ef4444;
+  z-index: 20;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.currentTimeIndicator {
+  width: 12px;
+  height: 12px;
+  background: #ef4444;
+  border-radius: 50%;
+  margin-left: -6px;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+.currentTimeText {
+  margin-left: 8px;
+  background: #ef4444;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Message aucun technicien */
+.noTechnicians {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  color: #666;
+}
+
+.noTechnicians p {
+  margin: 8px 0;
+  font-size: 16px;
+}
+
+.noTechnicians p:first-child {
+  font-weight: 500;
+  color: #333;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .technicianColumn {
+    min-width: 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .technicianColumn {
+    min-width: 150px;
+  }
+  
+  .timeColumn {
+    width: 60px;
+    min-width: 60px;
+  }
+  
+  .technicianHeader {
+    padding: 8px;
+  }
+  
+  .technicianName {
+    font-size: 14px;
+  }
+}
