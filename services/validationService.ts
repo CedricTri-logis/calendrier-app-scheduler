@@ -134,7 +134,7 @@ export class ValidationService {
    * Formate les erreurs de validation pour l'affichage
    */
   static formatValidationErrors(errors: z.ZodError): string[] {
-    return errors.errors.map(err => {
+    return errors.issues.map(err => {
       const field = err.path.join('.')
       return `${field}: ${err.message}`
     })
@@ -144,7 +144,7 @@ export class ValidationService {
    * Obtient le premier message d'erreur
    */
   static getFirstErrorMessage(errors: z.ZodError): string {
-    const firstError = errors.errors[0]
+    const firstError = errors.issues[0]
     if (!firstError) return 'Erreur de validation'
     
     return firstError.message
