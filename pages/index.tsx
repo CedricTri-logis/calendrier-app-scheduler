@@ -114,6 +114,7 @@ const ModernHome: NextPage = () => {
     
     const dateString = formatDateForDB(dropDate)
     const hour = ticket.hour ?? -1
+    const minutes = ticket.minutes ?? 0
     
     // Si un technicien est sélectionné ET qu'on n'est pas en vue multi-tech, assigner automatiquement le ticket à ce technicien
     // En vue multi-tech, toujours utiliser le technician_id du ticket (qui vient de la colonne où on a déposé)
@@ -155,18 +156,18 @@ const ModernHome: NextPage = () => {
       if (hasMultipleTechnicians) {
         // Si le ticket a plusieurs techniciens, ne jamais changer les assignations
         // Seulement mettre à jour la date et l'heure
-        await updateTicketPosition(ticket.id, dateString, hour)
+        await updateTicketPosition(ticket.id, dateString, hour, undefined, minutes)
       } else {
         // Si le ticket n'a qu'un seul technicien, permettre le changement de technicien
         // (technicianIdToAssign vient de la colonne où on a déposé le ticket)
-        await updateTicketPosition(ticket.id, dateString, hour, technicianIdToAssign)
+        await updateTicketPosition(ticket.id, dateString, hour, technicianIdToAssign, minutes)
       }
     } else if (ticket.technician_id !== technicianIdToAssign) {
       // Dans les autres vues, changer le technicien si nécessaire
-      await updateTicketPosition(ticket.id, dateString, hour, technicianIdToAssign)
+      await updateTicketPosition(ticket.id, dateString, hour, technicianIdToAssign, minutes)
     } else {
       // Si on ne change pas de technicien (dans les autres vues), ne pas passer le paramètre
-      await updateTicketPosition(ticket.id, dateString, hour)
+      await updateTicketPosition(ticket.id, dateString, hour, undefined, minutes)
     }
   }
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Modal from './ui/Modal'
 import styles from './TicketDetailsModal.module.css'
-import { Ticket } from '../utils/ticketHelpers'
+import { Ticket, getDurationOptions } from '../utils/ticketHelpers'
 
 interface TicketDetailsModalProps {
   isOpen: boolean
@@ -19,7 +19,7 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
   loading = false
 }) => {
   const [description, setDescription] = useState('')
-  const [estimatedDuration, setEstimatedDuration] = useState('')
+  const [estimatedDuration, setEstimatedDuration] = useState<number>(30)
   const [editedDate, setEditedDate] = useState('')
   const [editedTime, setEditedTime] = useState('')
   const [isSaving, setIsSaving] = useState(false)
@@ -28,7 +28,7 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
   useEffect(() => {
     if (ticket) {
       setDescription(ticket.description || '')
-      setEstimatedDuration(ticket.estimated_duration ? ticket.estimated_duration.toString() : '')
+      setEstimatedDuration(ticket.estimated_duration || 30)
       
       // Initialiser la date et l'heure d'édition
       if (ticket.date) {
@@ -62,21 +62,15 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
     setIsSaving(true)
     
     try {
-      const duration = estimatedDuration.trim() === '' ? null : parseInt(estimatedDuration)
       const desc = description.trim() === '' ? null : description.trim()
       
       // Validation
-      if (duration !== null && (isNaN(duration) || duration < 0)) {
-        alert('La durée estimée doit être un nombre positif')
-        return
-      }
-
       if (desc && desc.length > 500) {
         alert('La description ne peut pas dépasser 500 caractères')
         return
       }
 
-      const success = await onSave(ticket.id, desc, duration)
+      const success = await onSave(ticket.id, desc, estimatedDuration)
       if (success) {
         onClose()
       }
@@ -91,7 +85,7 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
   const handleCancel = () => {
     // Restaurer les valeurs originales
     setDescription(ticket.description || '')
-    setEstimatedDuration(ticket.estimated_duration ? ticket.estimated_duration.toString() : '')
+    setEstimatedDuration(ticket.estimated_duration || 30)
     
     // Restaurer date et heure
     if (ticket.date) {
@@ -149,7 +143,7 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
                               characterCount > 400 ? styles.warning : ''
 
   const hasChanges = description !== (ticket.description || '') || 
-                     estimatedDuration !== (ticket.estimated_duration ? ticket.estimated_duration.toString() : '') ||
+                     estimatedDuration !== (ticket.estimated_duration || 30) ||
                      editedDate !== (ticket.date || '') ||
                      editedTime !== (ticket.hour !== null && ticket.hour !== undefined && ticket.hour !== -1 ? String(ticket.hour).padStart(2, '0') + ':00' : '')
 
@@ -203,18 +197,20 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
               </div>
 
               <div className={styles.infoItem}>
-                <label className={styles.infoLabel} htmlFor="ticketDuration">Durée estimée (minutes)</label>
-                <input
+                <label className={styles.infoLabel} htmlFor="ticketDuration">Durée estimée</label>
+                <select
                   id="ticketDuration"
-                  type="number"
                   className={styles.editableInfoValue}
                   value={estimatedDuration}
-                  onChange={(e) => setEstimatedDuration(e.target.value)}
-                  placeholder="0"
-                  min="0"
-                  max="9999"
+                  onChange={(e) => setEstimatedDuration(Number(e.target.value))}
                   disabled={loading || isSaving}
-                />
+                >
+                  {getDurationOptions().map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>

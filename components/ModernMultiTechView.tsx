@@ -9,6 +9,12 @@ import {
   getScheduleTypeLabel,
   getScheduleTypeColor 
 } from '../utils/scheduleHelpers'
+import {
+  getSlotIndex,
+  getTimeFromSlot,
+  snapToQuarterHour,
+  getDurationSlots
+} from '../utils/ticketHelpers'
 
 interface ModernMultiTechViewProps {
   droppedTickets: { [key: string]: any[] }
@@ -52,8 +58,11 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
     return () => clearInterval(timer)
   }, [])
   
-  // Heures de la journée (7h à 18h)
-  const hours = Array.from({ length: 12 }, (_, i) => i + 7)
+  // Créneaux de 15 minutes de 7h à 18h45 (48 créneaux)
+  const timeSlots = Array.from({ length: 48 }, (_, i) => {
+    const { hour, minutes } = getTimeFromSlot(i)
+    return { slot: i, hour, minutes }
+  })
   
   // Filtrer uniquement les techniciens actifs (exclure "Non assigné")
   const activeTechnicians = technicians.filter(tech => tech.active && tech.name !== 'Non assigné')
@@ -87,26 +96,25 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
     const currentHour = currentTime.getHours()
     const currentMinutes = currentTime.getMinutes()
     
-    // Si l'heure actuelle est en dehors de la plage affichée (7h-18h)
+    // Si l'heure actuelle est en dehors de la plage affichée (7h-18h45)
     if (currentHour < 7) return -1
-    if (currentHour > 18) return -1
+    if (currentHour > 18 || (currentHour === 18 && currentMinutes > 45)) return -1
     
-    // Calculer la position relative dans la grille
-    const hoursFromStart = currentHour - 7
-    const minutesFraction = currentMinutes / 60
-    const totalFraction = hoursFromStart + minutesFraction
+    // Obtenir l'index du créneau actuel
+    const currentSlot = getSlotIndex(currentHour, currentMinutes)
+    if (currentSlot < 0) return -1
     
-    // Convertir en pourcentage (11 heures affichées = 100%)
-    return (totalFraction / 11) * 100
+    // Calculer la position en pourcentage (48 créneaux = 100%)
+    return (currentSlot / 48) * 100
   }
   
-  const handleDrop = (e: React.DragEvent, hour: number, technicianId: number) => {
+  const handleDrop = (e: React.DragEvent, hour: number, minutes: number, technicianId: number) => {
     e.preventDefault()
     const ticketData = e.dataTransfer.getData('ticket')
     if (ticketData) {
       const ticket = JSON.parse(ticketData)
       // Assigner automatiquement le ticket au technicien de la colonne
-      onDrop(currentDate.getDate(), { ...ticket, hour, technician_id: technicianId }, currentDate.getFullYear(), currentDate.getMonth())
+      onDrop(currentDate.getDate(), { ...ticket, hour, minutes, technician_id: technicianId }, currentDate.getFullYear(), currentDate.getMonth())
     }
   }
   
@@ -121,22 +129,28 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
   const dateKey = getDateKey()
   const todayTickets = droppedTickets[dateKey] || []
   
-  // Formater l'heure
-  const formatHour = (hour: number) => {
-    return `${hour}:00`
+  // Formater l'heure avec minutes
+  const formatTime = (hour: number, minutes: number) => {
+    return `${hour}:${minutes.toString().padStart(2, '0')}`
   }
   
-  // Fonction pour obtenir les tickets d'un technicien à une heure donnée
-  const getTechnicianTicketsAtHour = (technicianId: number, hour: number) => {
+  // Fonction pour obtenir les tickets d'un technicien à un créneau donné
+  const getTechnicianTicketsAtSlot = (technicianId: number, slotIndex: number) => {
     return todayTickets.filter(ticket => {
       // Vérifier si le ticket est assigné à ce technicien
       const isAssignedToTech = ticket.technician_id === technicianId || 
         (ticket.technicians && ticket.technicians.some((t: any) => t.id === technicianId))
       
-      // Vérifier si le ticket est à cette heure
-      const isAtThisHour = ticket.hour === hour
+      // Vérifier si le ticket commence à ce créneau
+      const ticketSlot = getSlotIndex(ticket.hour || 0, ticket.minutes || 0)
+      const duration = ticket.estimated_duration || 30
+      const slots = getDurationSlots(duration)
       
-      return isAssignedToTech && isAtThisHour
+      // Le ticket occupe ce créneau s'il commence avant ou à ce créneau
+      // et se termine après ce créneau
+      const occupiesSlot = ticketSlot <= slotIndex && slotIndex < ticketSlot + slots
+      
+      return isAssignedToTech && occupiesSlot && ticket.hour !== -1 && ticket.hour !== null
     })
   }
   
@@ -178,9 +192,9 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
         <div className={styles.timeColumn}>
           <div className={styles.timeHeader}></div>
           <div className={styles.allDayLabel}>Journée</div>
-          {hours.map((hour) => (
-            <div key={hour} className={styles.timeLabel}>
-              {formatHour(hour)}
+          {timeSlots.map((slot) => (
+            <div key={slot.slot} className={styles.timeLabel}>
+              {slot.minutes === 0 ? formatTime(slot.hour, slot.minutes) : ''}
             </div>
           ))}
         </div>
@@ -227,7 +241,7 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
                 {/* Zone toute la journée */}
                 <div 
                   className={styles.allDayCell}
-                  onDrop={(e) => handleDrop(e, -1, technician.id)}
+                  onDrop={(e) => handleDrop(e, -1, 0, technician.id)}
                   onDragOver={onDragOver}
                 >
                   {getAllDayTicketsForTechnician(technician.id).map((ticket) => (
@@ -251,19 +265,25 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
                   ))}
                 </div>
                 
-                {/* Cellules horaires */}
-                {hours.map((hour) => {
-                  const isAvailable = isHourAvailable(hour, dateKey, schedules, technician.id)
-                  const ticketsAtHour = getTechnicianTicketsAtHour(technician.id, hour)
+                {/* Cellules des créneaux de 15 minutes */}
+                {timeSlots.map((slot) => {
+                  const isAvailable = isHourAvailable(slot.hour, dateKey, schedules, technician.id)
+                  const ticketsAtSlot = getTechnicianTicketsAtSlot(technician.id, slot.slot)
+                  
+                  // Ne rendre le ticket que sur son créneau de départ
+                  const ticketsStartingHere = ticketsAtSlot.filter(ticket => {
+                    const ticketSlot = getSlotIndex(ticket.hour || 0, ticket.minutes || 0)
+                    return ticketSlot === slot.slot
+                  })
                   
                   return (
                     <div
-                      key={`${technician.id}-${hour}`}
-                      className={`${styles.hourCell} ${!isAvailable ? styles.unavailableHour : ''}`}
+                      key={`${technician.id}-${slot.slot}`}
+                      className={`${styles.slotCell} ${!isAvailable ? styles.unavailableSlot : ''}`}
                       onDrop={(e) => {
                         e.preventDefault()
                         if (isAvailable) {
-                          handleDrop(e, hour, technician.id)
+                          handleDrop(e, slot.hour, slot.minutes, technician.id)
                         }
                       }}
                       onDragOver={(e) => {
@@ -273,25 +293,40 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
                         }
                       }}
                     >
-                      {ticketsAtHour.map((ticket) => (
-                        <ModernTicket
-                          key={ticket.id}
-                          id={ticket.id}
-                          title={ticket.title}
-                          color={ticket.color}
-                          technician_id={ticket.technician_id}
-                          technician_name={ticket.technician_name}
-                          technician_color={ticket.technician_color}
-                          technicians={ticket.technicians}
-                          onDragStart={onDragStart}
-                          onAddTechnician={onAddTechnician}
-                          onRemoveTechnician={onRemoveTechnician}
-                          onTicketClick={onTicketClick}
-                          isCompact={true}
-                          showActions={true}
-                          isPlanned={true}
-                        />
-                      ))}
+                      {ticketsStartingHere.map((ticket) => {
+                        const duration = ticket.estimated_duration || 30
+                        const slots = getDurationSlots(duration)
+                        
+                        return (
+                          <div
+                            key={ticket.id}
+                            className={styles.ticketContainer}
+                            style={{
+                              gridRow: `span ${slots}`,
+                              height: `${slots * 20 - 4}px`
+                            }}
+                          >
+                            <ModernTicket
+                              id={ticket.id}
+                              title={ticket.title}
+                              color={ticket.color}
+                              technician_id={ticket.technician_id}
+                              technician_name={ticket.technician_name}
+                              technician_color={ticket.technician_color}
+                              technicians={ticket.technicians}
+                              onDragStart={onDragStart}
+                              onAddTechnician={onAddTechnician}
+                              onRemoveTechnician={onRemoveTechnician}
+                              onTicketClick={onTicketClick}
+                              isCompact={true}
+                              showActions={true}
+                              isPlanned={true}
+                              duration={duration}
+                              startTime={formatTime(ticket.hour, ticket.minutes || 0)}
+                            />
+                          </div>
+                        )
+                      })}
                     </div>
                   )
                 })}

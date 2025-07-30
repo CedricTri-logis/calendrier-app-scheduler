@@ -139,7 +139,7 @@ export function useTickets() {
   }
 
   // Mettre à jour la position d'un ticket (et optionnellement le technicien)
-  const updateTicketPosition = async (id: number, date: string | null, hour: number = -1, technicianId?: number) => {
+  const updateTicketPosition = async (id: number, date: string | null, hour: number = -1, technicianId?: number, minutes: number = 0) => {
     // Sauvegarder l'état précédent pour le rollback en cas d'erreur
     const previousTickets = [...tickets]
     
@@ -149,7 +149,7 @@ export function useTickets() {
         prevTickets.map(ticket => {
           if (ticket.id === id) {
             // Mettre à jour le ticket localement
-            const updatedTicket = { ...ticket, date, hour }
+            const updatedTicket = { ...ticket, date, hour, minutes }
             
             // Si un technicien est fourni, mettre à jour aussi les infos technicien
             if (technicianId !== undefined) {
@@ -182,7 +182,7 @@ export function useTickets() {
       )
       
       // 2. Préparer les données pour Supabase
-      const updateData: any = { date, hour }
+      const updateData: any = { date, hour, minutes }
       if (technicianId !== undefined) {
         updateData.technician_id = technicianId
       }

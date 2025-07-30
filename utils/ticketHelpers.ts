@@ -212,3 +212,94 @@ export function canRemoveTechnician(ticket: Ticket, technicianId: number): {
   
   return { canRemove: true }
 }
+
+/**
+ * Convertit heure + minutes en index de créneau (0-47 pour 7h00 à 18h45)
+ */
+export function getSlotIndex(hour: number, minutes: number): number {
+  // Limiter aux heures valides (7h-18h)
+  if (hour < 7 || hour > 18) return -1
+  if (hour === 18 && minutes > 45) return -1
+  
+  // Calculer l'index du créneau (4 créneaux par heure)
+  return (hour - 7) * 4 + Math.floor(minutes / 15)
+}
+
+/**
+ * Convertit un index de créneau en heure et minutes
+ */
+export function getTimeFromSlot(slotIndex: number): { hour: number; minutes: number } {
+  // Valider l'index
+  if (slotIndex < 0 || slotIndex > 47) {
+    return { hour: 7, minutes: 0 }
+  }
+  
+  const hour = Math.floor(slotIndex / 4) + 7
+  const minutes = (slotIndex % 4) * 15
+  
+  return { hour, minutes }
+}
+
+/**
+ * Arrondit les minutes au quart d'heure le plus proche
+ */
+export function snapToQuarterHour(minutes: number): number {
+  return Math.round(minutes / 15) * 15
+}
+
+/**
+ * Calcule le nombre de créneaux nécessaires pour une durée donnée
+ */
+export function getDurationSlots(duration: number): number {
+  // Minimum 1 créneau (15 minutes)
+  if (!duration || duration < 15) return 2 // 30 minutes par défaut
+  
+  // Arrondir au créneau supérieur
+  return Math.ceil(duration / 15)
+}
+
+/**
+ * Formate l'affichage d'une durée en minutes
+ */
+export function formatDuration(minutes: number): string {
+  if (!minutes) return '30 min'
+  
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  
+  if (hours === 0) {
+    return `${mins} min`
+  } else if (mins === 0) {
+    return hours === 1 ? '1 heure' : `${hours} heures`
+  } else {
+    return hours === 1 ? `1h ${mins}min` : `${hours}h ${mins}min`
+  }
+}
+
+/**
+ * Génère les options de durée pour le sélecteur
+ */
+export function getDurationOptions(): Array<{ value: number; label: string }> {
+  const options = []
+  
+  // De 15 minutes à 2 heures par tranches de 15 minutes
+  for (let minutes = 15; minutes <= 120; minutes += 15) {
+    options.push({
+      value: minutes,
+      label: formatDuration(minutes)
+    })
+  }
+  
+  // Ajouter des options plus longues
+  options.push(
+    { value: 150, label: '2h 30min' },
+    { value: 180, label: '3 heures' },
+    { value: 240, label: '4 heures' },
+    { value: 300, label: '5 heures' },
+    { value: 360, label: '6 heures' },
+    { value: 420, label: '7 heures' },
+    { value: 480, label: '8 heures' }
+  )
+  
+  return options
+}

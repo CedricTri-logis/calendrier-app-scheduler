@@ -105,13 +105,13 @@
 
 .timeLabel {
   box-sizing: border-box;
-  height: 80px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 12px;
   color: #666;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 /* Colonnes des techniciens */
@@ -191,68 +191,27 @@
   gap: 4px;
 }
 
-.hourCell {
+.slotCell {
   box-sizing: border-box;
-  height: 80px;
-  padding: 4px;
-  border-bottom: 1px solid #e0e0e0;
+  height: 20px;
+  padding: 2px;
+  border-bottom: 1px solid #f0f0f0;
   transition: background-color 0.2s;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  overflow: visible;
   position: relative;
-  z-index: 1;
 }
 
-/* Lignes de repère temporelles */
-.hourCell::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 1px;
-  background-color: #e8e8e8;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Conteneur pour les lignes de quart d'heure */
-.quarterLines {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.quarterLine {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background-color: #ebebeb;
-}
-
-/* Ligne pointillée à 15 minutes */
-.quarterLine.quarter15 {
-  top: 25%;
-  background-image: linear-gradient(to right, #ebebeb 50%, transparent 50%);
-  background-size: 8px 1px;
-}
-
-/* Ligne pointillée à 45 minutes */
-.quarterLine.quarter45 {
-  top: 75%;
-  background-image: linear-gradient(to right, #ebebeb 50%, transparent 50%);
-  background-size: 8px 1px;
-}
-
-.hourCell:hover {
+.slotCell:hover {
   background: #f5f5f5;
 }
 
-.unavailableHour {
+/* Lignes d'heures entières (toutes les 4 cellules) */
+/* nth-child(4n+2) car on a la cellule allDay avant les slots */
+.slotCell:nth-child(4n+2) {
+  border-bottom: 2px solid #d0d0d0;
+}
+
+.unavailableSlot {
   background: repeating-linear-gradient(
     45deg,
     #fafafa,
@@ -264,7 +223,7 @@
   opacity: 0.7;
 }
 
-.unavailableHour:hover {
+.unavailableSlot:hover {
   background: repeating-linear-gradient(
     45deg,
     #fafafa,
@@ -272,6 +231,16 @@
     #f5f5f5 10px,
     #f5f5f5 20px
   );
+}
+
+/* Conteneur pour les tickets avec hauteur variable */
+.ticketContainer {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  top: 2px;
+  z-index: 10;
+  pointer-events: auto;
 }
 
 /* Ligne de temps actuelle */

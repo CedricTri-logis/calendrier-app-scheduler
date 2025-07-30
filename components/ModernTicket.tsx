@@ -30,6 +30,8 @@ interface ModernTicketProps {
   isCompact?: boolean
   showActions?: boolean
   isPlanned?: boolean
+  duration?: number
+  startTime?: string
 }
 
 const ModernTicket: React.FC<ModernTicketProps> = ({ 
@@ -47,7 +49,9 @@ const ModernTicket: React.FC<ModernTicketProps> = ({
   onTicketClick,
   isCompact = false,
   showActions = false,
-  isPlanned = false
+  isPlanned = false,
+  duration,
+  startTime
 }) => {
   const [isHovered, setIsHovered] = useState(false)
   const [clickStartTime, setClickStartTime] = useState<number | null>(null)
@@ -179,6 +183,12 @@ const ModernTicket: React.FC<ModernTicketProps> = ({
           )}
           {title}
         </div>
+        {/* Afficher l'heure et la durée en mode compact si disponible */}
+        {isCompact && startTime && (
+          <div className={styles.ticketTime}>
+            {startTime} {duration && duration !== 30 && `(${duration}min)`}
+          </div>
+        )}
         {!isCompact && renderTechnicians()}
       </div>
       
