@@ -392,6 +392,9 @@ const ModernHome: NextPage = () => {
           <a href="/migrations" className={styles.navLink}>
             🗃️ Migrations
           </a>
+          <a href="/debug-schedules" className={styles.navLink} style={{ backgroundColor: '#ffeaa7', color: '#d63031' }}>
+            🐛 Debug 14h
+          </a>
         </nav>
       </header>
 

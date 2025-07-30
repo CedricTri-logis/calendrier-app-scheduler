@@ -9,8 +9,6 @@ import {
   getScheduleTypeLabel,
   getScheduleTypeColor 
 } from '../utils/scheduleHelpers'
-import { filterAllDayTickets, filterTicketsByHour, getTimedTickets } from '../utils/ticketFiltering'
-import { formatHour } from '../utils/timeFormatHelpers'
 
 interface ModernWeekViewProps {
   droppedTickets: { [key: string]: any[] }
@@ -112,7 +110,10 @@ const ModernWeekView: React.FC<ModernWeekViewProps> = ({
     return `${year}-${month}-${day}`
   }
   
-  // Formatage de l'heure géré par timeFormatHelpers
+  // Formater l'heure
+  const formatHour = (hour: number) => {
+    return `${hour}:00`
+  }
   
   return (
     <div className={styles.weekView}>
@@ -161,7 +162,9 @@ const ModernWeekView: React.FC<ModernWeekViewProps> = ({
         <div className={styles.allDayLabel}>Journée</div>
         {weekDays.map((date, index) => {
           const dateKey = getDateKey(date)
-          const allDayTickets = filterAllDayTickets(droppedTickets[dateKey] || [])
+          const allDayTickets = (droppedTickets[dateKey] || []).filter(
+            ticket => !ticket.hour || ticket.hour === -1
+          )
           
           return (
             <div 
@@ -180,7 +183,6 @@ const ModernWeekView: React.FC<ModernWeekViewProps> = ({
                   technician_name={ticket.technician_name}
                   technician_color={ticket.technician_color}
                   technicians={ticket.technicians}
-                  estimated_duration={ticket.estimated_duration}
                   onDragStart={onDragStart}
                   onAddTechnician={onAddTechnician}
                   onRemoveTechnician={onRemoveTechnician}
@@ -188,7 +190,6 @@ const ModernWeekView: React.FC<ModernWeekViewProps> = ({
                   isCompact={true}
                   showActions={true}
                   isPlanned={true}
-                  hourHeight={60}
                 />
               ))}
             </div>
@@ -228,56 +229,36 @@ const ModernWeekView: React.FC<ModernWeekViewProps> = ({
               className={`${styles.dayColumn} ${isToday(date) ? styles.todayColumn : ''}`}
             >
               {hours.map((hour) => {
-                const hourTickets = filterTicketsByHour(dayTickets, hour)
+                const hourTickets = dayTickets.filter(ticket => ticket.hour === hour)
                 const isAvailable = isHourAvailable(hour, dateKey, schedules, selectedTechnicianId)
                 
                 return (
                   <div
                     key={hour}
                     className={`${styles.hourCell} ${!isAvailable ? styles.unavailable : ''}`}
-                    style={{ position: 'relative', height: '60px', overflow: 'visible' }}
                     onDrop={isAvailable ? (e) => handleDrop(e, date, hour) : undefined}
                     onDragOver={isAvailable ? onDragOver : undefined}
                   >
-                    {/* Lignes de quart d'heure */}
-                    <div className={styles.quarterLines}>
-                      <div className={`${styles.quarterLine} ${styles.quarter15}`} />
-                      <div className={`${styles.quarterLine} ${styles.quarter45}`} />
-                    </div>
-                    {hourTickets.map((ticket) => {
-                      // Calculer la position verticale basée sur les minutes
-                      const minuteOffset = (ticket.minutes || 0) / 60 * 60 // 60px pour une heure
-                      const wrapperStyle: React.CSSProperties = {
-                        position: 'absolute',
-                        top: `${minuteOffset}px`,
-                        left: '2px',
-                        right: '2px',
-                        zIndex: 10
-                      }
-                      
-                      return (
-                        <div key={ticket.id} className={styles.eventWrapper} style={wrapperStyle}>
-                          <ModernTicket
-                            id={ticket.id}
-                            title={ticket.title}
-                            color={ticket.color}
-                            technician_id={ticket.technician_id}
-                            technician_name={ticket.technician_name}
-                            technician_color={ticket.technician_color}
-                            technicians={ticket.technicians}
-                            estimated_duration={ticket.estimated_duration}
-                            onDragStart={onDragStart}
-                            onAddTechnician={onAddTechnician}
-                            onRemoveTechnician={onRemoveTechnician}
-                            onTicketClick={onTicketClick}
-                            isCompact={true}
-                            showActions={true}
-                            isPlanned={true}
-                            hourHeight={60}
-                          />
-                        </div>
-                      )
-                    })}
+                    {hourTickets.map((ticket) => (
+                      <div key={ticket.id} className={styles.eventWrapper}>
+                        <ModernTicket
+                          id={ticket.id}
+                          title={ticket.title}
+                          color={ticket.color}
+                          technician_id={ticket.technician_id}
+                          technician_name={ticket.technician_name}
+                          technician_color={ticket.technician_color}
+                          technicians={ticket.technicians}
+                          onDragStart={onDragStart}
+                          onAddTechnician={onAddTechnician}
+                          onRemoveTechnician={onRemoveTechnician}
+                          onTicketClick={onTicketClick}
+                          isCompact={true}
+                          showActions={true}
+                          isPlanned={true}
+                        />
+                      </div>
+                    ))}
                   </div>
                 )
               })}
