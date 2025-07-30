@@ -63,7 +63,8 @@
   flex: 1;
   overflow: auto;
   position: relative;
-  background: #f8f9fa;
+  /* background: #f8f9fa; -- Retiré car cause le fond gris après 14h */
+  background: white;
 }
 
 /* Colonne des heures */

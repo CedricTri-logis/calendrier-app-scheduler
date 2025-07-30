@@ -17,23 +17,8 @@ export function isHourAvailable(
     daySchedules = daySchedules.filter(schedule => schedule.technician_id === technicianId)
   }
   
-  // Debug spécifique pour 14h
-  if (hour === 14) {
-    console.log(`[isHourAvailable] Debug 14h:`, {
-      hour,
-      date,
-      technicianId,
-      daySchedules: daySchedules.map(s => ({
-        type: s.type,
-        start: s.start_time,
-        end: s.end_time
-      }))
-    })
-  }
-  
   // Si aucun horaire pour ce jour, pas disponible
   if (daySchedules.length === 0) {
-    if (hour === 14) console.log(`[isHourAvailable] 14h: Aucun horaire trouvé`)
     return false
   }
   
@@ -49,20 +34,7 @@ export function isHourAvailable(
     const startTime = startHour + startMin / 60
     const endTime = endHour + endMin / 60
     
-    const isInSlot = hour >= startTime && hour < endTime
-    
-    if (hour === 14) {
-      console.log(`[isHourAvailable] 14h - Slot disponible:`, {
-        start: schedule.start_time,
-        end: schedule.end_time,
-        startTime,
-        endTime,
-        isInSlot,
-        calculation: `14 >= ${startTime} && 14 < ${endTime}`
-      })
-    }
-    
-    return isInSlot
+    return hour >= startTime && hour < endTime
   })
   
   // Ensuite vérifier qu'elle n'est pas dans une plage indisponible
@@ -73,33 +45,10 @@ export function isHourAvailable(
     const startTime = startHour + startMin / 60
     const endTime = endHour + endMin / 60
     
-    const isInSlot = hour >= startTime && hour < endTime
-    
-    if (hour === 14) {
-      console.log(`[isHourAvailable] 14h - Slot indisponible:`, {
-        type: schedule.type,
-        start: schedule.start_time,
-        end: schedule.end_time,
-        startTime,
-        endTime,
-        isInSlot
-      })
-    }
-    
-    return isInSlot
+    return hour >= startTime && hour < endTime
   })
   
-  const result = inAvailableSlot && !inUnavailableSlot
-  
-  if (hour === 14) {
-    console.log(`[isHourAvailable] 14h - Résultat final:`, {
-      inAvailableSlot,
-      inUnavailableSlot,
-      result
-    })
-  }
-  
-  return result
+  return inAvailableSlot && !inUnavailableSlot
 }
 
 /**
