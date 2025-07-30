@@ -57,7 +57,7 @@ async function setupDatabase() {
     console.log('\nTest de la connexion temps réel...')
     const channel = supabase
       .channel('test')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tickets' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tickets' }, (payload: any) => {
         console.log('✅ Connexion temps réel fonctionnelle!')
         channel.unsubscribe()
       })

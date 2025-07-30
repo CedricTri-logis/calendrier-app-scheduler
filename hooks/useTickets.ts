@@ -73,7 +73,7 @@ export function useTickets() {
       }
 
       // Grouper les assignations par ticket
-      const assignmentsByTicket = (assignmentsData || []).reduce((acc, assignment) => {
+      const assignmentsByTicket = (assignmentsData || []).reduce((acc: any, assignment: any) => {
         if (!acc[assignment.ticket_id]) {
           acc[assignment.ticket_id] = []
         }
@@ -87,7 +87,7 @@ export function useTickets() {
       }, {} as Record<number, any[]>)
 
       // Transformer et normaliser les données
-      const transformedData = (ticketsData || []).map(ticket => {
+      const transformedData = (ticketsData || []).map((ticket: any) => {
         // Fusionner les données avec les assignations multi-techniciens
         const ticketWithMultiTech = {
           ...ticket,
@@ -317,7 +317,7 @@ export function useTickets() {
       .channel('tickets-changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'tickets' }, 
-        (payload) => {
+        (payload: any) => {
           console.log('Changement détecté:', payload)
           
           // Optimisation: Ne recharger que si le changement vient d'un autre client
