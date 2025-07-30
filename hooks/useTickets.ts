@@ -22,6 +22,8 @@ export interface TicketWithTechnician {
   }>
   primary_technician_name?: string | null
   primary_technician_color?: string | null
+  description?: string | null
+  estimated_duration?: number | null
   created_at: string
   updated_at: string
 }
@@ -71,7 +73,7 @@ export function useTickets() {
       }
 
       // Grouper les assignations par ticket
-      const assignmentsByTicket = (assignmentsData || []).reduce((acc, assignment) => {
+      const assignmentsByTicket = (assignmentsData || []).reduce((acc: any, assignment: any) => {
         if (!acc[assignment.ticket_id]) {
           acc[assignment.ticket_id] = []
         }
@@ -85,7 +87,7 @@ export function useTickets() {
       }, {} as Record<number, any[]>)
 
       // Transformer et normaliser les données
-      const transformedData = (ticketsData || []).map(ticket => {
+      const transformedData = (ticketsData || []).map((ticket: any) => {
         // Fusionner les données avec les assignations multi-techniciens
         const ticketWithMultiTech = {
           ...ticket,
@@ -137,16 +139,55 @@ export function useTickets() {
   }
 
   // Mettre à jour la position d'un ticket (et optionnellement le technicien)
-  const updateTicketPosition = async (id: number, date: string | null, hour: number = -1, technicianId?: number) => {
+  const updateTicketPosition = async (id: number, date: string | null, hour: number = -1, technicianId?: number, minutes: number = 0) => {
+    // Sauvegarder l'état précédent pour le rollback en cas d'erreur
+    const previousTickets = [...tickets]
+    
     try {
-      // Préparer les données à mettre à jour
-      const updateData: any = { date, hour }
+      // 1. Mise à jour optimiste locale immédiate
+      setTickets(prevTickets => 
+        prevTickets.map(ticket => {
+          if (ticket.id === id) {
+            // Mettre à jour le ticket localement
+            const updatedTicket = { ...ticket, date, hour, minutes }
+            
+            // Si un technicien est fourni, mettre à jour aussi les infos technicien
+            if (technicianId !== undefined) {
+              // Ne changer les techniciens que si on change vraiment de technicien principal
+              if (ticket.technician_id !== technicianId) {
+                updatedTicket.technician_id = technicianId
+                
+                // Trouver les infos du nouveau technicien
+                const newTechnician = (window as any).__technicians?.find((t: any) => t.id === technicianId)
+                if (newTechnician) {
+                  updatedTicket.technician_name = newTechnician.name
+                  updatedTicket.technician_color = newTechnician.color
+                  
+                  // Remplacer complètement le tableau des techniciens par le nouveau
+                  updatedTicket.technicians = [{
+                    id: newTechnician.id,
+                    name: newTechnician.name,
+                    color: newTechnician.color,
+                    active: newTechnician.active || true,
+                    is_primary: true
+                  }]
+                }
+              }
+            }
+            
+            return updatedTicket
+          }
+          return ticket
+        })
+      )
       
-      // Si un technicien est fourni, l'inclure dans la mise à jour
+      // 2. Préparer les données pour Supabase
+      const updateData: any = { date, hour, minutes }
       if (technicianId !== undefined) {
         updateData.technician_id = technicianId
       }
       
+      // 3. Envoyer la mise à jour à Supabase en arrière-plan
       const { error } = await supabase
         .from('tickets')
         .update(updateData)
@@ -154,11 +195,39 @@ export function useTickets() {
 
       if (error) throw error
 
-      // Recharger pour avoir les infos mises à jour du technicien
-      await fetchTickets()
+      // 4. Si on change de technicien, gérer les assignations multi-techniciens
+      if (technicianId !== undefined) {
+        const currentTicket = tickets.find(t => t.id === id)
+        
+        // Ne modifier les assignations que si on change vraiment de technicien principal
+        if (currentTicket && currentTicket.technician_id !== technicianId) {
+          // Pour un changement de technicien (drag & drop), on veut remplacer complètement
+          // toutes les assignations existantes par le nouveau technicien
+          
+          // Supprimer TOUTES les assignations existantes pour ce ticket
+          await supabase
+            .from('ticket_technicians')
+            .delete()
+            .eq('ticket_id', id)
+          
+          // Ajouter la nouvelle assignation
+          await supabase
+            .from('ticket_technicians')
+            .insert({
+              ticket_id: id,
+              technician_id: technicianId,
+              is_primary: true
+            })
+        }
+      }
+
+      // Note: Pas de fetchTickets() ici - on garde l'état local optimiste
+      // Le listener temps réel gérera la synchronisation si nécessaire
 
       return true
     } catch (err) {
+      // En cas d'erreur, restaurer l'état précédent
+      setTickets(previousTickets)
       setError(err instanceof Error ? err.message : 'Erreur lors de la mise à jour du ticket')
       return false
     }
@@ -166,20 +235,41 @@ export function useTickets() {
 
   // Retirer un ticket du calendrier (le remettre dans la liste non planifiée)
   const removeTicketFromCalendar = async (id: number) => {
+    // Sauvegarder l'état précédent pour le rollback en cas d'erreur
+    const previousTickets = [...tickets]
+    
     try {
-      // 1. Retirer le ticket du calendrier
+      // 1. Mise à jour optimiste locale immédiate
+      setTickets(prevTickets => 
+        prevTickets.map(ticket => {
+          if (ticket.id === id) {
+            return {
+              ...ticket,
+              date: null,
+              hour: null,
+              technician_id: null,
+              technician_name: null,
+              technician_color: null,
+              technicians: []
+            }
+          }
+          return ticket
+        })
+      )
+      
+      // 2. Retirer le ticket du calendrier dans Supabase
       const { error: updateError } = await supabase
         .from('tickets')
         .update({ 
           date: null, 
           hour: -1,
-          technician_id: null // Désassigner le technicien principal
+          technician_id: null
         })
         .eq('id', id)
 
       if (updateError) throw updateError
 
-      // 2. Supprimer toutes les assignations multi-techniciens
+      // 3. Supprimer toutes les assignations multi-techniciens
       const { error: deleteError } = await supabase
         .from('ticket_technicians')
         .delete()
@@ -189,11 +279,12 @@ export function useTickets() {
         console.warn('Erreur lors de la suppression des assignations:', deleteError)
       }
 
-      // 3. Recharger les tickets pour avoir l'état à jour
-      await fetchTickets()
+      // Note: Pas de fetchTickets() ici - on garde l'état local optimiste
 
       return true
     } catch (err) {
+      // En cas d'erreur, restaurer l'état précédent
+      setTickets(previousTickets)
       setError(err instanceof Error ? err.message : 'Erreur lors du retrait du ticket')
       return false
     }
@@ -226,9 +317,32 @@ export function useTickets() {
       .channel('tickets-changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'tickets' }, 
-        (payload) => {
+        (payload: any) => {
           console.log('Changement détecté:', payload)
-          fetchTickets() // Recharger les tickets
+          
+          // Optimisation: Ne recharger que si le changement vient d'un autre client
+          // (éviter de recharger après nos propres mises à jour optimistes)
+          if (payload.eventType === 'UPDATE') {
+            // Mettre à jour uniquement le ticket modifié
+            const updatedTicket = payload.new as any
+            
+            setTickets(prevTickets => 
+              prevTickets.map(ticket => 
+                ticket.id === updatedTicket.id 
+                  ? { ...ticket, ...updatedTicket }
+                  : ticket
+              )
+            )
+          } else if (payload.eventType === 'INSERT') {
+            // Pour les nouveaux tickets, on doit les charger avec les infos technicien
+            fetchTickets()
+          } else if (payload.eventType === 'DELETE') {
+            // Supprimer le ticket de l'état local
+            const deletedId = (payload.old as any).id
+            setTickets(prevTickets => 
+              prevTickets.filter(ticket => ticket.id !== deletedId)
+            )
+          }
         }
       )
       .subscribe()
@@ -240,7 +354,89 @@ export function useTickets() {
 
   // Ajouter un technicien à un ticket
   const addTechnicianToTicket = async (ticketId: number, technicianId: number, isPrimary: boolean = false) => {
+    // Sauvegarder l'état précédent pour le rollback en cas d'erreur
+    const previousTickets = [...tickets]
+    
     try {
+      // Trouver le ticket actuel
+      const currentTicket = tickets.find(t => t.id === ticketId)
+      if (!currentTicket) throw new Error('Ticket non trouvé')
+      
+      // Vérifier si le technicien initial doit être ajouté à ticket_technicians
+      let shouldAddInitialTech = false
+      let initialTechId: number | null = null
+      
+      if (currentTicket.technician_id && (!currentTicket.technicians || currentTicket.technicians.length === 0)) {
+        // Le ticket a un technician_id mais pas d'entrées dans technicians[]
+        // Cela signifie que le technicien initial n'est pas dans ticket_technicians
+        shouldAddInitialTech = true
+        initialTechId = currentTicket.technician_id
+      }
+      
+      // 1. Mise à jour optimiste locale immédiate
+      const newTechnician = (window as any).__technicians?.find((t: any) => t.id === technicianId)
+      if (newTechnician) {
+        setTickets(prevTickets => 
+          prevTickets.map(ticket => {
+            if (ticket.id === ticketId) {
+              const updatedTicket = { ...ticket }
+              
+              // Si nécessaire, ajouter d'abord le technicien initial
+              if (shouldAddInitialTech && initialTechId) {
+                const initialTech = (window as any).__technicians?.find((t: any) => t.id === initialTechId)
+                if (initialTech) {
+                  updatedTicket.technicians = [{
+                    id: initialTech.id,
+                    name: initialTech.name,
+                    color: initialTech.color,
+                    active: initialTech.active,
+                    is_primary: true
+                  }]
+                }
+              }
+              
+              // Ajouter le nouveau technicien au tableau
+              const newTech = {
+                id: newTechnician.id,
+                name: newTechnician.name,
+                color: newTechnician.color,
+                active: newTechnician.active,
+                is_primary: isPrimary
+              }
+              
+              // Si c'est principal, retirer le statut principal des autres
+              if (isPrimary && updatedTicket.technicians) {
+                updatedTicket.technicians = updatedTicket.technicians.map(t => ({
+                  ...t,
+                  is_primary: false
+                }))
+                
+                // Mettre à jour le technicien principal
+                updatedTicket.technician_id = technicianId
+                updatedTicket.technician_name = newTechnician.name
+                updatedTicket.technician_color = newTechnician.color
+              }
+              
+              // Ajouter au tableau des techniciens
+              updatedTicket.technicians = [...(updatedTicket.technicians || []), newTech]
+              
+              return updatedTicket
+            }
+            return ticket
+          })
+        )
+      }
+      
+      // 2. Si nécessaire, ajouter d'abord le technicien initial dans la BD
+      if (shouldAddInitialTech && initialTechId) {
+        await supabase.rpc('add_technician_to_ticket', {
+          p_ticket_id: ticketId,
+          p_technician_id: initialTechId,
+          p_is_primary: true
+        })
+      }
+      
+      // 3. Ajouter le nouveau technicien
       const { data, error: addError } = await supabase
         .rpc('add_technician_to_ticket', {
           p_ticket_id: ticketId,
@@ -250,11 +446,12 @@ export function useTickets() {
 
       if (addError) throw addError
 
-      // Recharger les tickets pour avoir les mises à jour
-      await fetchTickets()
+      // Note: Pas de fetchTickets() ici - on garde l'état local optimiste
       
       return { success: true, error: null }
     } catch (err) {
+      // En cas d'erreur, restaurer l'état précédent
+      setTickets(previousTickets)
       console.error('Erreur lors de l\'ajout du technicien:', err)
       return { 
         success: false, 
@@ -265,7 +462,47 @@ export function useTickets() {
 
   // Retirer un technicien d'un ticket
   const removeTechnicianFromTicket = async (ticketId: number, technicianId: number) => {
+    // Sauvegarder l'état précédent pour le rollback en cas d'erreur
+    const previousTickets = [...tickets]
+    
     try {
+      // 1. Mise à jour optimiste locale immédiate
+      setTickets(prevTickets => 
+        prevTickets.map(ticket => {
+          if (ticket.id === ticketId) {
+            const updatedTicket = { ...ticket }
+            
+            // Retirer le technicien du tableau
+            updatedTicket.technicians = (updatedTicket.technicians || []).filter(t => t.id !== technicianId)
+            
+            // Si c'était le technicien principal, réassigner
+            if (updatedTicket.technician_id === technicianId) {
+              if (updatedTicket.technicians.length > 0) {
+                // Prendre le premier technicien restant ou celui marqué comme principal
+                const newPrimary = updatedTicket.technicians.find(t => t.is_primary) || updatedTicket.technicians[0]
+                updatedTicket.technician_id = newPrimary.id
+                updatedTicket.technician_name = newPrimary.name
+                updatedTicket.technician_color = newPrimary.color
+                
+                // S'assurer qu'il y a un principal
+                if (!updatedTicket.technicians.some(t => t.is_primary)) {
+                  updatedTicket.technicians[0].is_primary = true
+                }
+              } else {
+                // Plus de technicien assigné
+                updatedTicket.technician_id = null
+                updatedTicket.technician_name = null
+                updatedTicket.technician_color = null
+              }
+            }
+            
+            return updatedTicket
+          }
+          return ticket
+        })
+      )
+      
+      // 2. Appeler la fonction RPC en arrière-plan
       const { data, error: removeError } = await supabase
         .rpc('remove_technician_from_ticket', {
           p_ticket_id: ticketId,
@@ -274,11 +511,12 @@ export function useTickets() {
 
       if (removeError) throw removeError
 
-      // Recharger les tickets pour avoir les mises à jour
-      await fetchTickets()
+      // Note: Pas de fetchTickets() ici - on garde l'état local optimiste
       
       return { success: true, error: null }
     } catch (err) {
+      // En cas d'erreur, restaurer l'état précédent
+      setTickets(previousTickets)
       console.error('Erreur lors du retrait du technicien:', err)
       return { 
         success: false, 
@@ -309,6 +547,51 @@ export function useTickets() {
     }
   }
 
+  // Mettre à jour les détails d'un ticket (description et durée estimée)
+  const updateTicketDetails = async (id: number, description: string | null, estimatedDuration: number | null) => {
+    // Sauvegarder l'état précédent pour le rollback en cas d'erreur
+    const previousTickets = [...tickets]
+    
+    try {
+      // 1. Mise à jour optimiste locale immédiate
+      setTickets(prevTickets => 
+        prevTickets.map(ticket => 
+          ticket.id === id 
+            ? { 
+                ...ticket, 
+                description, 
+                estimated_duration: estimatedDuration 
+              }
+            : ticket
+        )
+      )
+      
+      // 2. Préparer les données pour Supabase
+      const updateData: any = { 
+        description, 
+        estimated_duration: estimatedDuration 
+      }
+      
+      // 3. Envoyer la mise à jour à Supabase en arrière-plan
+      const { error } = await supabase
+        .from('tickets')
+        .update(updateData)
+        .eq('id', id)
+
+      if (error) throw error
+
+      // Note: Pas de fetchTickets() ici - on garde l'état local optimiste
+      // Le listener temps réel gérera la synchronisation si nécessaire
+
+      return true
+    } catch (err) {
+      // En cas d'erreur, restaurer l'état précédent
+      setTickets(previousTickets)
+      setError(err instanceof Error ? err.message : 'Erreur lors de la mise à jour des détails du ticket')
+      return false
+    }
+  }
+
   return {
     tickets,
     loading,
@@ -320,6 +603,7 @@ export function useTickets() {
     addTechnicianToTicket,
     removeTechnicianFromTicket,
     checkAllTechniciansAvailability,
+    updateTicketDetails,
     refetch: fetchTickets
   }
 }

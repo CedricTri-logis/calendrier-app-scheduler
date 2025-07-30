@@ -18,6 +18,8 @@ export interface Ticket {
   technician_name?: string | null
   technician_color?: string | null
   technicians?: Technician[]
+  description?: string | null
+  estimated_duration?: number | null  // en minutes
   created_at?: string
   updated_at?: string
 }
@@ -33,6 +35,8 @@ export function normalizeTicket(ticket: any): Ticket {
     color: ticket.color || '#fff3cd',
     date: ticket.date || null,
     hour: ticket.hour ?? null,
+    description: ticket.description || null,
+    estimated_duration: ticket.estimated_duration || null,
     created_at: ticket.created_at,
     updated_at: ticket.updated_at
   }
@@ -67,6 +71,15 @@ export function normalizeTicket(ticket: any): Ticket {
       active: ticket.technician.active !== false
     }]
   }
+  // Si on a seulement technician_id sans la relation chargée
+  else if (ticket.technician_id) {
+    normalized.technician_id = ticket.technician_id
+    // Essayer de récupérer les infos depuis le ticket lui-même
+    normalized.technician_name = ticket.technician_name || 'Technicien'
+    normalized.technician_color = ticket.technician_color || '#3B82F6'
+    // Créer un tableau minimal pour ne pas perdre le ticket
+    normalized.technicians = []
+  }
   // Pas de technicien assigné
   else {
     normalized.technician_id = null
@@ -96,6 +109,12 @@ export function hasMultipleTechnicians(ticket: Ticket): boolean {
  * Vérifie si un technicien est assigné à un ticket
  */
 export function isTechnicianAssigned(ticket: Ticket, technicianId: number): boolean {
+  // Vérifier d'abord le technician_id principal
+  if (ticket.technician_id === technicianId) {
+    return true
+  }
+  
+  // Puis vérifier dans le tableau des techniciens
   return ticket.technicians?.some(t => t.id === technicianId) || false
 }
 
@@ -103,7 +122,23 @@ export function isTechnicianAssigned(ticket: Ticket, technicianId: number): bool
  * Obtient les IDs de tous les techniciens assignés
  */
 export function getAssignedTechnicianIds(ticket: Ticket): number[] {
-  return ticket.technicians?.map(t => t.id) || []
+  const ids: number[] = []
+  
+  // Ajouter le technician_id principal s'il existe
+  if (ticket.technician_id) {
+    ids.push(ticket.technician_id)
+  }
+  
+  // Ajouter les IDs du tableau technicians
+  if (ticket.technicians) {
+    ticket.technicians.forEach(t => {
+      if (!ids.includes(t.id)) {
+        ids.push(t.id)
+      }
+    })
+  }
+  
+  return ids
 }
 
 /**
@@ -179,23 +214,34 @@ export function canRemoveTechnician(ticket: Ticket, technicianId: number): {
 }
 
 /**
- * Convertit une heure et des minutes en index de créneau (0 = 0h00, 1 = 0h15, etc.)
+ * Convertit heure + minutes en index de créneau (0-47 pour 7h00 à 18h45)
  */
-export function getSlotIndex(hour: number, minutes: number = 0): number {
-  return hour * 4 + Math.floor(minutes / 15)
+export function getSlotIndex(hour: number, minutes: number): number {
+  // Limiter aux heures valides (7h-18h)
+  if (hour < 7 || hour > 18) return -1
+  if (hour === 18 && minutes > 45) return -1
+  
+  // Calculer l'index du créneau (4 créneaux par heure)
+  return (hour - 7) * 4 + Math.floor(minutes / 15)
 }
 
 /**
  * Convertit un index de créneau en heure et minutes
  */
 export function getTimeFromSlot(slotIndex: number): { hour: number; minutes: number } {
-  const hour = Math.floor(slotIndex / 4)
+  // Valider l'index
+  if (slotIndex < 0 || slotIndex > 47) {
+    return { hour: 7, minutes: 0 }
+  }
+  
+  const hour = Math.floor(slotIndex / 4) + 7
   const minutes = (slotIndex % 4) * 15
+  
   return { hour, minutes }
 }
 
 /**
- * Arrondit au quart d'heure le plus proche
+ * Arrondit les minutes au quart d'heure le plus proche
  */
 export function snapToQuarterHour(minutes: number): number {
   return Math.round(minutes / 15) * 15
@@ -204,6 +250,56 @@ export function snapToQuarterHour(minutes: number): number {
 /**
  * Calcule le nombre de créneaux nécessaires pour une durée donnée
  */
-export function getDurationSlots(durationMinutes: number): number {
-  return Math.ceil(durationMinutes / 15)
+export function getDurationSlots(duration: number): number {
+  // Minimum 1 créneau (15 minutes)
+  if (!duration || duration < 15) return 2 // 30 minutes par défaut
+  
+  // Arrondir au créneau supérieur
+  return Math.ceil(duration / 15)
+}
+
+/**
+ * Formate l'affichage d'une durée en minutes
+ */
+export function formatDuration(minutes: number): string {
+  if (!minutes) return '30 min'
+  
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  
+  if (hours === 0) {
+    return `${mins} min`
+  } else if (mins === 0) {
+    return hours === 1 ? '1 heure' : `${hours} heures`
+  } else {
+    return hours === 1 ? `1h ${mins}min` : `${hours}h ${mins}min`
+  }
+}
+
+/**
+ * Génère les options de durée pour le sélecteur
+ */
+export function getDurationOptions(): Array<{ value: number; label: string }> {
+  const options = []
+  
+  // De 15 minutes à 2 heures par tranches de 15 minutes
+  for (let minutes = 15; minutes <= 120; minutes += 15) {
+    options.push({
+      value: minutes,
+      label: formatDuration(minutes)
+    })
+  }
+  
+  // Ajouter des options plus longues
+  options.push(
+    { value: 150, label: '2h 30min' },
+    { value: 180, label: '3 heures' },
+    { value: 240, label: '4 heures' },
+    { value: 300, label: '5 heures' },
+    { value: 360, label: '6 heures' },
+    { value: 420, label: '7 heures' },
+    { value: 480, label: '8 heures' }
+  )
+  
+  return options
 }

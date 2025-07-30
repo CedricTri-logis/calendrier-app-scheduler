@@ -60,7 +60,7 @@ test('Debug structure et synchronisation', async ({ page }) => {
   
   console.log('Cellule trouvée:', dayCell);
   
-  if (dayCell.found) {
+  if (dayCell.found && dayCell.index !== undefined) {
     // Drag and drop du ticket
     const ticket = page.locator('h3:has-text("Test Debug")').first();
     const targetCell = page.locator('[class*="dayCell"]').nth(dayCell.index);

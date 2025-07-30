@@ -172,6 +172,7 @@ interface CalendarContextValue {
     deleteTicket: (id: number) => Promise<boolean>
     addTechnicianToTicket: (ticketId: number, technicianId: number, isPrimary?: boolean) => Promise<{ success: boolean; error: string | null }>
     removeTechnicianFromTicket: (ticketId: number, technicianId: number) => Promise<{ success: boolean; error: string | null }>
+    updateTicketDetails: (id: number, description: string | null, estimatedDuration: number | null) => Promise<boolean>
   }
 }
 
@@ -191,7 +192,8 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
     removeTicketFromCalendar,
     deleteTicket,
     addTechnicianToTicket,
-    removeTechnicianFromTicket
+    removeTechnicianFromTicket,
+    updateTicketDetails
   } = useTickets()
   
   const { technicians, loading: loadingTechnicians } = useTechnicians()
@@ -234,7 +236,8 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
       removeTicketFromCalendar,
       deleteTicket,
       addTechnicianToTicket,
-      removeTechnicianFromTicket
+      removeTechnicianFromTicket,
+      updateTicketDetails
     }
   }
   

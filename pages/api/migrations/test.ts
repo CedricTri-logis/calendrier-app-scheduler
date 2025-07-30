@@ -17,7 +17,11 @@ export default async function handler(
         ? `${process.env.SUPABASE_SERVICE_ROLE_KEY.substring(0, 20)}...` 
         : 'Non définie'
     },
-    tests: [] as any[]
+    tests: [] as any[],
+    summary: {
+      ready: false,
+      message: ''
+    }
   }
 
   // Test 1: Connexion basique

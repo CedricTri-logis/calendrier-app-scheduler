@@ -307,7 +307,7 @@ export function useSchedules(filters?: ScheduleFilters) {
           schema: 'public', 
           table: 'schedules' 
         },
-        (payload) => {
+        (payload: any) => {
           console.log('Changement détecté dans les horaires:', payload)
           // Recharger les données pour avoir les relations
           fetchSchedules()

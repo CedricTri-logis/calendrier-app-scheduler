@@ -25,6 +25,7 @@ export class TechnicianService {
     if (status === 'available') statusEmoji = '✅'
     else if (status === 'partial') statusEmoji = '⚡'
     else if (status === 'unavailable') statusEmoji = '🚫'
+    else if (status === 'unknown') statusEmoji = '❓'
     
     // Obtenir les types d'horaires pour cette date
     const daySchedules = schedules.filter(s => 
@@ -77,7 +78,6 @@ export class TechnicianService {
         // Vérifier si l'heure est dans une plage disponible
         const isHourAvailable = daySchedules.some(schedule => {
           if (schedule.type === 'available') {
-            // Parse les heures depuis start_time et end_time
             const startHour = parseInt(schedule.start_time.split(':')[0])
             const endHour = parseInt(schedule.end_time.split(':')[0])
             return hour >= startHour && hour < endHour

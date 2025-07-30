@@ -5,11 +5,13 @@ import styles from "../styles/ModernHome.module.css"
 import { CalendarProvider, useCalendarState, useCalendarActions } from "../contexts/CalendarContext"
 import TicketSidebar from "../components/Sidebar/TicketSidebar"
 import CalendarContainer from "../components/Calendar/CalendarContainer"
+import TicketDetailsModal from "../components/TicketDetailsModal"
 import { LoadingContainer } from "../components/ui/Spinner"
 
 const ModernHomeContent: React.FC = () => {
   const state = useCalendarState()
   const { 
+    updateTicketDetails, 
     removeTicketFromCalendar, 
     removeTechnicianFromTicket,
     dispatch 
@@ -19,6 +21,7 @@ const ModernHomeContent: React.FC = () => {
     tickets,
     loading,
     error,
+    selectedTicketForDetails
   } = state
   
   // Gérer le début du drag
@@ -45,6 +48,16 @@ const ModernHomeContent: React.FC = () => {
       await removeTicketFromCalendar(ticket.id)
     }
   }, [removeTicketFromCalendar])
+  
+  // Gérer la fermeture du modal de détails
+  const handleCloseTicketDetails = useCallback(() => {
+    dispatch({ type: 'SET_SELECTED_TICKET_DETAILS', payload: null })
+  }, [dispatch])
+  
+  // Gérer la sauvegarde des détails de ticket
+  const handleUpdateTicketDetails = useCallback(async (ticketId: number, description: string | null, estimatedDuration: number | null) => {
+    return await updateTicketDetails(ticketId, description, estimatedDuration)
+  }, [updateTicketDetails])
   
   // Gérer le retrait de technicien depuis la sidebar
   const handleRemoveTechnicianFromSidebar = useCallback(async (ticketId: number, technicianId: number) => {
@@ -117,6 +130,14 @@ const ModernHomeContent: React.FC = () => {
         />
       </main>
       
+      {/* Modal des détails de ticket */}
+      <TicketDetailsModal
+        isOpen={selectedTicketForDetails !== null}
+        onClose={handleCloseTicketDetails}
+        ticket={selectedTicketForDetails ? tickets.find(t => t.id === selectedTicketForDetails) || null : null}
+        onSave={handleUpdateTicketDetails}
+        loading={loading}
+      />
     </div>
   )
 }

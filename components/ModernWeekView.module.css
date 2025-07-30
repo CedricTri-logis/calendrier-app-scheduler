@@ -178,6 +178,51 @@
   padding: 2px 4px;
   position: relative;
   transition: background-color var(--transition-fast);
+  overflow: visible;
+  z-index: 1;
+}
+
+/* Ligne de demi-heure (30 minutes) */
+.hourCell::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background-color: #e8e8e8;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Conteneur pour les lignes de quart d'heure */
+.quarterLines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.quarterLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #ebebeb;
+}
+
+/* Ligne pointillée à 15 minutes */
+.quarterLine.quarter15 {
+  top: 25%;
+  background-image: linear-gradient(to right, #ebebeb 50%, transparent 50%);
+  background-size: 8px 1px;
+}
+
+/* Ligne pointillée à 45 minutes */
+.quarterLine.quarter45 {
+  top: 75%;
+  background-image: linear-gradient(to right, #ebebeb 50%, transparent 50%);
+  background-size: 8px 1px;
 }
 
 .hourCell:hover {

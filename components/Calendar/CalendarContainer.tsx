@@ -219,6 +219,7 @@ export default function CalendarContainer({ onDragStart, onDragOver }: CalendarC
             onNextMonth={() => dispatch({ type: 'GO_TO_NEXT_PERIOD' })}
             onToday={() => dispatch({ type: 'GO_TO_TODAY' })}
             selectedTechnicianId={selectedTechnicianId}
+            onDayClick={handleDayClick}
           />
         )}
         

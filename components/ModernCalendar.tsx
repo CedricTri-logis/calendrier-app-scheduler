@@ -23,6 +23,8 @@ interface ModernCalendarProps {
   selectedTechnicianId: number | null
   onAddTechnician?: (ticketId: number) => void
   onRemoveTechnician?: (ticketId: number, technicianId: number) => void
+  onTicketClick?: (ticketId: number) => void
+  onDayClick?: (date: Date) => void
 }
 
 const ModernCalendar: React.FC<ModernCalendarProps> = ({ 
@@ -37,7 +39,9 @@ const ModernCalendar: React.FC<ModernCalendarProps> = ({
   schedules,
   selectedTechnicianId,
   onAddTechnician,
-  onRemoveTechnician
+  onRemoveTechnician,
+  onTicketClick,
+  onDayClick
 }) => {
   // Jours de la semaine
   const daysOfWeek = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
@@ -153,6 +157,11 @@ const ModernCalendar: React.FC<ModernCalendarProps> = ({
               `}
               onDrop={canDrop ? (e) => handleDrop(e, day) : undefined}
               onDragOver={canDrop ? onDragOver : undefined}
+              onClick={isCurrentMonth && onDayClick ? () => {
+                const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
+                onDayClick(clickedDate)
+              } : undefined}
+              style={{ cursor: isCurrentMonth && onDayClick ? 'pointer' : 'default' }}
             >
               <div className={styles.dayNumber}>
                 {day}
@@ -196,6 +205,7 @@ const ModernCalendar: React.FC<ModernCalendarProps> = ({
                       onDragStart={onDragStart}
                       onAddTechnician={onAddTechnician}
                       onRemoveTechnician={onRemoveTechnician}
+                      onTicketClick={onTicketClick}
                       isCompact={true}
                       showActions={true}
                       isPlanned={true}

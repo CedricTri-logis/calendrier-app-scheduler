@@ -61,9 +61,9 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className={styles.errorState}>
-          <h1 className={styles.errorTitle}>Oops! Une erreur s'est produite</h1>
+          <h1 className={styles.errorTitle}>Oops! Une erreur s&apos;est produite</h1>
           <p className={styles.errorMessage}>
-            {this.state.error?.message || "Une erreur inattendue s'est produite"}
+            {this.state.error?.message || 'Une erreur inattendue s&apos;est produite'}
           </p>
           
           {process.env.NODE_ENV === 'development' && this.state.errorInfo && (

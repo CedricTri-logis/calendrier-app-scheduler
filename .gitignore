@@ -39,6 +39,8 @@ next-env.d.ts
 /debug-*.js
 *.log
 
+# Percy
+.percy-build/
+
 # environment files
 .env.local
-mobile/

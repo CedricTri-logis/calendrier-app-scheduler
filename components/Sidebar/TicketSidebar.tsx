@@ -191,6 +191,7 @@ export default function TicketSidebar({ onDragStart, onRemoveTicket }: TicketSid
             onAddTechnician={handleAddTechnician}
             onRemoveTechnician={handleRemoveTechnician}
             onDeleteTicket={deleteTicket}
+            onTicketClick={handleTicketClick}
             showActions={true}
             isPlanned={false}
           />

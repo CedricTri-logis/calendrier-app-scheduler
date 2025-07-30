@@ -153,7 +153,7 @@ export function useTechnicians() {
           schema: 'public', 
           table: 'technicians' 
         },
-        (payload) => {
+        (payload: any) => {
           console.log('Changement détecté dans les techniciens:', payload)
           
           if (payload.eventType === 'INSERT' && payload.new) {

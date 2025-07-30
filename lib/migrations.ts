@@ -101,7 +101,7 @@ export async function executeMigration(migration: Migration): Promise<void> {
     const result = await supabase.rpc('exec_sql', { query: migration.upSql })
     
     if (result.error) {
-      throw new Error(result.error.message || 'Migration execution failed')
+      throw new Error(result.error.message || 'Erreur lors de l\'exécution de la migration')
     }
 
     // Enregistrer dans l'historique
@@ -175,7 +175,7 @@ export async function rollbackMigration(version: string): Promise<void> {
     const result = await supabase.rpc('exec_sql', { query: history.rollback_sql })
     
     if (result.error) {
-      throw new Error(result.error.message || 'Migration execution failed')
+      throw new Error(result.error.message || 'Erreur lors de l\'exécution du rollback')
     }
 
     // Mettre à jour le statut dans l'historique
