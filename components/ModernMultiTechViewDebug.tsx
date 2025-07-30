@@ -169,6 +169,34 @@ const ModernMultiTechViewDebug: React.FC<ModernMultiTechViewDebugProps> = (props
             </div>
           )}
           
+          {/* Marqueur de debug pour 14h15 */}
+          <div 
+            style={{ 
+              position: 'absolute',
+              left: '80px',
+              right: 0,
+              height: '4px',
+              background: 'orange',
+              top: `calc(${((14.25 - 7) / 11) * 100}% + 120px)`,
+              zIndex: 25,
+              pointerEvents: 'none'
+            }}
+          >
+            <span style={{ 
+              position: 'absolute', 
+              left: '10px', 
+              top: '-20px', 
+              background: 'orange', 
+              color: 'white', 
+              padding: '2px 6px',
+              borderRadius: '3px',
+              fontSize: '11px',
+              fontWeight: 'bold'
+            }}>
+              14h15 (Position calculée)
+            </span>
+          </div>
+          
           {activeTechnicians.map((technician) => {
             const availabilityStatus = getDateAvailabilityStatus(dateKey, schedules, technician.id)
             
@@ -245,8 +273,10 @@ const ModernMultiTechViewDebug: React.FC<ModernMultiTechViewDebugProps> = (props
                     >
                       {/* Afficher l'état de disponibilité pour debug */}
                       {hour === 14 && (
-                        <div style={{ position: 'absolute', top: 0, right: 0, fontSize: '10px', color: 'red' }}>
+                        <div style={{ position: 'absolute', top: 0, right: 0, fontSize: '10px', color: 'red', zIndex: 30 }}>
                           {isAvailable ? 'DISPO' : 'INDISPO'}
+                          <br />
+                          <span style={{ fontSize: '8px' }}>z:{isAvailable ? '1' : '1+bg'}</span>
                         </div>
                       )}
                       
