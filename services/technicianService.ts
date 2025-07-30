@@ -30,7 +30,7 @@ export class TechnicianService {
     const daySchedules = schedules.filter(s => 
       s.technician_id === technician.id && s.date === date
     )
-    const scheduleTypes = daySchedules.map(s => s.schedule_type)
+    const scheduleTypes = daySchedules.map(s => s.type)
     
     return {
       technicianId: technician.id,
