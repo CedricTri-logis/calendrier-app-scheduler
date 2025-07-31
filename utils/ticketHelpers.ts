@@ -258,6 +258,17 @@ export function getDurationSlots(duration: number): number {
   return Math.ceil(duration / 15)
 }
 
+/**                                                                                                  
+* Calcule la hauteur en pixels d'un ticket basée sur sa durée                                       
+@param duration - Durée en minutes                                                               
+@returns Hauteur en pixels                                                                      
+│ │  */                                                                                                 
+export function getTicketHeight(duration: number): number {                                        
+  const slots = getDurationSlots(duration)                                                         
+  // 20px par créneau de 15 minutes, moins 4px de padding                                   
+  return (slots * 20) - 4                                                                           
+}  
+
 /**
  * Formate l'affichage d'une durée en minutes
  */

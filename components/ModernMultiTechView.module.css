@@ -199,6 +199,7 @@
   transition: background-color 0.2s;
   display: flex;
   position: relative;
+  overflow: visible;
 }
 
 .slotCell:hover {

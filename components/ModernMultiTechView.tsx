@@ -323,6 +323,8 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
                               isPlanned={true}
                               duration={duration}
                               startTime={formatTime(ticket.hour, ticket.minutes || 0)}
+                              slots={slots}
+                              height={slots * 20 - 4}
                             />
                           </div>
                         )
