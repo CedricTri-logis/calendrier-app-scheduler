@@ -73,6 +73,13 @@
   transform: translateY(-1px);
 }
 
+.navSeparator {
+  width: 1px;
+  height: 32px;
+  background-color: var(--border-light);
+  margin: 0 12px;
+}
+
 /* Modern Sidebar */
 .sidebar {
   width: 300px;

@@ -14,6 +14,7 @@ export interface Ticket {
   color: string
   date?: string | null
   hour?: number | null
+  minutes?: number | null
   technician_id?: number | null
   technician_name?: string | null
   technician_color?: string | null
@@ -35,6 +36,7 @@ export function normalizeTicket(ticket: any): Ticket {
     color: ticket.color || '#fff3cd',
     date: ticket.date || null,
     hour: ticket.hour ?? null,
+    minutes: ticket.minutes ?? null,
     description: ticket.description || null,
     estimated_duration: ticket.estimated_duration || null,
     created_at: ticket.created_at,
@@ -265,8 +267,11 @@ export function getDurationSlots(duration: number): number {
 │ │  */                                                                                                 
 export function getTicketHeight(duration: number): number {                                        
   const slots = getDurationSlots(duration)                                                         
-  // 20px par créneau de 15 minutes, moins 4px de padding                                   
-  return (slots * 20) - 4                                                                           
+  // Utilise les variables CSS pour la hauteur des créneaux et le padding
+  // Note: En production, ces valeurs pourraient être passées en paramètres ou récupérées du DOM
+  const slotHeight = 20; // var(--slot-height)
+  const slotPadding = 4; // var(--slot-padding)
+  return (slots * slotHeight) - slotPadding;
 }  
 
 /**

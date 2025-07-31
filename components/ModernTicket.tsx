@@ -8,6 +8,7 @@ import {
   type Ticket,
   type Technician
 } from '../utils/ticketHelpers'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 interface ModernTicketProps {
   id: number
@@ -60,6 +61,7 @@ const ModernTicket: React.FC<ModernTicketProps> = ({
   const [isHovered, setIsHovered] = useState(false)
   const [clickStartTime, setClickStartTime] = useState<number | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const isMobile = useIsMobile()
   const handleDragStart = (e: React.DragEvent) => {
     setIsDragging(true)
     const ticketData = {
@@ -174,9 +176,9 @@ const ModernTicket: React.FC<ModernTicketProps> = ({
       style={{ backgroundColor: color, 
         height: height ? `${height}px` : undefined
       }}
-      draggable
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
+      draggable={!isMobile}
+      onDragStart={isMobile ? undefined : handleDragStart}
+      onDragEnd={isMobile ? undefined : handleDragEnd}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
       onMouseEnter={() => setIsHovered(true)}
@@ -229,14 +231,16 @@ const ModernTicket: React.FC<ModernTicketProps> = ({
         </div>
       )}
       
-      <div className={styles.dragHandle}>
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-          <circle cx="3" cy="3" r="1.5" />
-          <circle cx="9" cy="3" r="1.5" />
-          <circle cx="3" cy="9" r="1.5" />
-          <circle cx="9" cy="9" r="1.5" />
-        </svg>
-      </div>
+      {!isMobile && (
+        <div className={styles.dragHandle}>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+            <circle cx="3" cy="3" r="1.5" />
+            <circle cx="9" cy="3" r="1.5" />
+            <circle cx="3" cy="9" r="1.5" />
+            <circle cx="9" cy="9" r="1.5" />
+          </svg>
+        </div>
+      )}
     </div>
   )
 }

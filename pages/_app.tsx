@@ -5,6 +5,7 @@ import { useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { ToastProvider } from '../contexts/ToastContext'
 import ToastWrapper from '../components/Toast/ToastWrapper'
+import { ZoomProvider } from '../contexts/ZoomContext'
 
 function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
@@ -29,10 +30,12 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, [])
   
   return (
-    <ToastProvider>
-      <Component {...pageProps} />
-      <ToastWrapper />
-    </ToastProvider>
+    <ZoomProvider>
+      <ToastProvider>
+        <Component {...pageProps} />
+        <ToastWrapper />
+      </ToastProvider>
+    </ZoomProvider>
   )
 }
 

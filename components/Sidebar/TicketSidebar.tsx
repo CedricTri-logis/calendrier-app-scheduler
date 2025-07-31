@@ -7,6 +7,7 @@ import { useCalendar, useCalendarState, useCalendarActions } from '../../context
 import { formatDateForDB } from '../../utils/dateHelpers'
 import { getDateAvailabilityStatus } from '../../utils/scheduleHelpers'
 import { useToast } from '../../contexts/ToastContext'
+import { useIsMobile } from '../../hooks/useIsMobile'
 
 interface TicketSidebarProps {
   onDragStart: (e: React.DragEvent, ticketId: number) => void
@@ -25,6 +26,7 @@ export default function TicketSidebar({ onDragStart, onRemoveTicket }: TicketSid
   const { showError } = useToast()
   const state = useCalendarState()
   const { createTicket, deleteTicket, removeTechnicianFromTicket, dispatch } = useCalendarActions()
+  const isMobile = useIsMobile()
   
   const {
     tickets,
@@ -165,15 +167,17 @@ export default function TicketSidebar({ onDragStart, onRemoveTicket }: TicketSid
       </div>
       
       {/* Zone de dépôt pour retirer les tickets du calendrier */}
-      <div 
-        className={`${styles.removeDropZone} ${isDraggingOver ? styles.dragOver : ''}`}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-      >
-        <div className={styles.removeIcon}>📥</div>
-        <p className={styles.removeText}>Glissez ici pour retirer du calendrier</p>
-      </div>
+      {!isMobile && (
+        <div 
+          className={`${styles.removeDropZone} ${isDraggingOver ? styles.dragOver : ''}`}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+        >
+          <div className={styles.removeIcon}>📥</div>
+          <p className={styles.removeText}>Glissez ici pour retirer du calendrier</p>
+        </div>
+      )}
       
       <div className={styles.ticketsList}>
         {unplacedTickets.map((ticket) => (

@@ -32,6 +32,7 @@
   /* Borders */
   --border-color: #dadce0;
   --border-light: #e8eaed;
+  --border-lighter: #f0f0f0;
   --border-dark: #bdc1c6;
   
   /* Status Colors */
@@ -52,6 +53,10 @@
   --spacing-xl: 32px;
   --spacing-2xl: 48px;
   
+  /* Calendar specific */
+  --slot-height: 20px;
+  --slot-padding: 4px;
+  
   /* Border Radius */
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -68,6 +73,10 @@
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Helvetica Neue', sans-serif;
   
   /* Z-index */
+  --z-base: 1;
+  --z-ticket: 2;
+  --z-timeline: 5;
+  --z-header: 10;
   --z-dropdown: 100;
   --z-sticky: 200;
   --z-modal: 300;

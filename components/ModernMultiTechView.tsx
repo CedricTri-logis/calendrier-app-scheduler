@@ -13,12 +13,15 @@ import {
   getSlotIndex,
   getTimeFromSlot,
   snapToQuarterHour,
-  getDurationSlots
+  getDurationSlots,
+  getTicketHeight,
+  Ticket
 } from '../utils/ticketHelpers'
+import { useZoom } from '../contexts/ZoomContext'
 
 interface ModernMultiTechViewProps {
-  droppedTickets: { [key: string]: any[] }
-  onDrop: (dayNumber: number, ticket: any, year?: number, month?: number) => void
+  droppedTickets: { [key: string]: Ticket[] }
+  onDrop: (dayNumber: number, ticket: Ticket, year?: number, month?: number) => void
   onDragOver: (e: React.DragEvent) => void
   onDragStart: (e: React.DragEvent, ticketId: number) => void
   currentDate: Date
@@ -48,14 +51,22 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
   onTicketClick
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date())
+  const { zoomLevel } = useZoom()
   
   // Mettre à jour l'heure actuelle toutes les minutes
   useEffect(() => {
+    let mounted = true;
+    
     const timer = setInterval(() => {
-      setCurrentTime(new Date())
+      if (mounted) {
+        setCurrentTime(new Date())
+      }
     }, 60000)
     
-    return () => clearInterval(timer)
+    return () => {
+      mounted = false;
+      clearInterval(timer)
+    }
   }, [])
   
   // Créneaux de 15 minutes de 7h à 18h45 (48 créneaux)
@@ -129,6 +140,18 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
   const dateKey = getDateKey()
   const todayTickets = droppedTickets[dateKey] || []
   
+  // DEBUG: Log les tickets pour vérifier
+  useEffect(() => {
+    console.log('=== DEBUG ModernMultiTechView ===')
+    console.log('Date actuelle:', currentDate)
+    console.log('DateKey:', dateKey)
+    console.log('Tickets pour cette date:', todayTickets)
+    console.log('Nombre de tickets:', todayTickets.length)
+    if (todayTickets.length > 0) {
+      console.log('Premier ticket:', todayTickets[0])
+    }
+  }, [dateKey, todayTickets])
+  
   // Formater l'heure avec minutes
   const formatTime = (hour: number, minutes: number) => {
     return `${hour}:${minutes.toString().padStart(2, '0')}`
@@ -145,6 +168,20 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
       const ticketSlot = getSlotIndex(ticket.hour || 0, ticket.minutes || 0)
       const duration = ticket.estimated_duration || 30
       const slots = getDurationSlots(duration)
+      
+      // DEBUG: Log pour le ticket 12345
+      if (ticket.title && ticket.title.includes('12345')) {
+        console.log('DEBUG Ticket 12345:', {
+          title: ticket.title,
+          hour: ticket.hour,
+          minutes: ticket.minutes,
+          ticketSlot,
+          slotIndex,
+          isAssignedToTech,
+          technicianId,
+          ticket_technician_id: ticket.technician_id
+        })
+      }
       
       // Le ticket occupe ce créneau s'il commence avant ou à ce créneau
       // et se termine après ce créneau
@@ -170,8 +207,17 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
   
   return (
     <div className={styles.multiTechView}>
-      {/* Header avec la date */}
-      <div className={styles.header}>
+      <div 
+        className={styles.zoomContainer}
+        style={{
+          transform: `scale(${zoomLevel / 100})`,
+          transformOrigin: 'top left',
+          width: `${100 / (zoomLevel / 100)}%`,
+          height: `${100 / (zoomLevel / 100)}%`
+        }}
+      >
+        {/* Header avec la date */}
+        <div className={styles.header}>
         <div className={styles.dateInfo}>
           <div className={styles.dayNameLarge}>{dayName}</div>
           <div className={styles.dateDetails}>
@@ -303,7 +349,7 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
                             className={styles.ticketContainer}
                             style={{
                               gridRow: `span ${slots}`,
-                              height: `${slots * 20 - 4}px`
+                              height: `${getTicketHeight(duration)}px`
                             }}
                           >
                             <ModernTicket
@@ -322,7 +368,7 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
                               showActions={true}
                               isPlanned={true}
                               duration={duration}
-                              startTime={formatTime(ticket.hour, ticket.minutes || 0)}
+                              startTime={formatTime(ticket.hour || 0, ticket.minutes || 0)}
                               slots={slots}
                               height={slots * 20 - 4}
                             />
@@ -338,13 +384,14 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
         </div>
       </div>
       
-      {/* Message si aucun technicien actif */}
-      {activeTechnicians.length === 0 && (
-        <div className={styles.noTechnicians}>
-          <p>Aucun technicien actif pour cette journée.</p>
-          <p>Veuillez activer des techniciens dans la gestion des horaires.</p>
-        </div>
-      )}
+        {/* Message si aucun technicien actif */}
+        {activeTechnicians.length === 0 && (
+          <div className={styles.noTechnicians}>
+            <p>Aucun technicien actif pour cette journée.</p>
+            <p>Veuillez activer des techniciens dans la gestion des horaires.</p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

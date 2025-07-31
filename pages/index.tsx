@@ -8,10 +8,13 @@ import CalendarContainer from "../components/Calendar/CalendarContainer"
 import TicketDetailsModal from "../components/TicketDetailsModal"
 import { LoadingContainer } from "../components/ui/Spinner"
 import { useToast } from "../contexts/ToastContext"
+import ZoomControls from "../components/ZoomControls"
+import { useIsMobile } from "../hooks/useIsMobile"
 
 const ModernHomeContent: React.FC = () => {
   const { showError } = useToast()
   const state = useCalendarState()
+  const isMobile = useIsMobile()
   const { 
     updateTicketDetails, 
     removeTicketFromCalendar, 
@@ -28,28 +31,31 @@ const ModernHomeContent: React.FC = () => {
   
   // Gérer le début du drag
   const handleDragStart = useCallback((e: React.DragEvent, ticketId: number) => {
+    if (isMobile) return
     const ticket = tickets.find(t => t.id === ticketId)
     if (ticket) {
       e.dataTransfer.setData('ticket', JSON.stringify(ticket))
       e.dataTransfer.effectAllowed = 'move'
     }
-  }, [tickets])
+  }, [tickets, isMobile])
   
   // Permettre le drop
   const handleDragOver = useCallback((e: React.DragEvent) => {
+    if (isMobile) return
     e.preventDefault()
     e.dataTransfer.dropEffect = 'move'
-  }, [])
+  }, [isMobile])
   
   // Gérer le retrait d'un ticket du calendrier
   const handleRemoveTicket = useCallback(async (e: React.DragEvent) => {
+    if (isMobile) return
     e.preventDefault()
     const ticketData = e.dataTransfer.getData('ticket')
     if (ticketData) {
       const ticket = JSON.parse(ticketData)
       await removeTicketFromCalendar(ticket.id)
     }
-  }, [removeTicketFromCalendar])
+  }, [removeTicketFromCalendar, isMobile])
   
   // Gérer la fermeture du modal de détails
   const handleCloseTicketDetails = useCallback(() => {
@@ -108,6 +114,8 @@ const ModernHomeContent: React.FC = () => {
           <span>Calendrier Pro</span>
         </div>
         <nav className={styles.navigation}>
+          <ZoomControls />
+          <div className={styles.navSeparator} />
           <a href="/schedules" className={styles.navLink}>
             ⏰ Gérer les horaires
           </a>
