@@ -1,0 +1,139 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 500px;
+  width: 90%;
+  margin: 20px;
+  animation: slideIn 0.3s ease-out;
+  overflow: hidden;
+}
+
+.header {
+  padding: 24px 24px 0;
+  text-align: center;
+}
+
+.iconWrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background-color: #FEE2E2;
+  border-radius: 50%;
+  margin-bottom: 16px;
+}
+
+.icon {
+  width: 32px;
+  height: 32px;
+  color: #DC2626;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.content {
+  padding: 16px 24px 24px;
+  text-align: center;
+}
+
+.message {
+  font-size: 16px;
+  color: #4B5563;
+  line-height: 1.5;
+  margin: 0;
+  white-space: pre-line;
+}
+
+.footer {
+  padding: 16px 24px;
+  background-color: #F9FAFB;
+  display: flex;
+  justify-content: center;
+}
+
+.closeButton {
+  background-color: #DC2626;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.closeButton:hover {
+  background-color: #B91C1C;
+}
+
+.closeButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Mode sombre */
+@media (prefers-color-scheme: dark) {
+  .modal {
+    background: #1F2937;
+    color: #F3F4F6;
+  }
+  
+  .title {
+    color: #F3F4F6;
+  }
+  
+  .message {
+    color: #D1D5DB;
+  }
+  
+  .footer {
+    background-color: #111827;
+  }
+  
+  .iconWrapper {
+    background-color: rgba(220, 38, 38, 0.2);
+  }
+}

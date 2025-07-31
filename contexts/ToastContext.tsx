@@ -7,6 +7,7 @@ interface ToastContextType {
   showError: (message: string) => void
   showWarning: (message: string) => void
   showInfo: (message: string) => void
+  showConflictError: (message: string) => void
   removeToast: (id: string) => void
 }
 
@@ -53,6 +54,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     showToast(message, 'info')
   }, [showToast])
 
+  const showConflictError = useCallback((message: string) => {
+    // Pour les conflits, on utilise un type spécial qui sera affiché au centre
+    const id = Date.now().toString()
+    const toast: Toast = { id, message, type: 'conflict' as ToastType, duration: 0 } // duration 0 = pas d'auto-fermeture
+    
+    setToasts(prev => [...prev, toast])
+  }, [])
+
   return (
     <ToastContext.Provider value={{ 
       toasts, 
@@ -60,6 +69,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       showError, 
       showWarning, 
       showInfo,
+      showConflictError,
       removeToast 
     }}>
       {children}

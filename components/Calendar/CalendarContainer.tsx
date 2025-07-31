@@ -18,7 +18,7 @@ interface CalendarContainerProps {
 }
 
 export default function CalendarContainer({ onDragStart, onDragOver }: CalendarContainerProps) {
-  const { showError, showWarning } = useToast()
+  const { showError, showWarning, showConflictError } = useToast()
   const state = useCalendarState()
   const { 
     updateTicketPosition, 
@@ -122,7 +122,7 @@ export default function CalendarContainer({ onDragStart, onDragOver }: CalendarC
       }
       
       if (conflictResult.hasConflict) {
-        showError(conflictResult.message || 'Conflit d\'horaire détecté')
+        showConflictError(conflictResult.message || 'Conflit d\'horaire détecté')
         return
       }
     }
@@ -233,7 +233,7 @@ export default function CalendarContainer({ onDragStart, onDragOver }: CalendarC
       )
       
       if (conflictResult.hasConflict) {
-        showError(conflictResult.message || 'Ce technicien a déjà un ticket sur ce créneau horaire')
+        showConflictError(conflictResult.message || 'Ce technicien a déjà un ticket sur ce créneau horaire')
         return
       }
     }
