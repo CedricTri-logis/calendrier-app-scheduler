@@ -9,7 +9,7 @@ import CalendarControls, { AvailabilityLegend } from '../Controls/CalendarContro
 import { useCalendarState, useCalendarActions } from '../../contexts/CalendarContext'
 import { formatDateForDB } from '../../utils/dateHelpers'
 import { getDateAvailabilityStatus, isHourAvailable } from '../../utils/scheduleHelpers'
-import { filterTicketsByTechnician } from '../../utils/ticketHelpers'
+import { filterTicketsByTechnician, checkTicketConflicts, checkMultiTechnicianConflicts } from '../../utils/ticketHelpers'
 import { useToast } from '../../contexts/ToastContext'
 
 interface CalendarContainerProps {
@@ -89,6 +89,40 @@ export default function CalendarContainer({ onDragStart, onDragOver }: CalendarC
     if (availabilityStatus === 'partial' && technicianIdToAssign) {
       const technicianName = technicians.find(t => t.id === technicianIdToAssign)?.name || 'Ce technicien'
       if (!confirm(`${technicianName} a une disponibilité limitée à cette date. Voulez-vous continuer ?`)) {
+        return
+      }
+    }
+    
+    // Vérifier les conflits d'horaire avec d'autres tickets
+    if (hour !== -1) { // Ne vérifier que pour les tickets avec une heure spécifique
+      const originalTicket = tickets.find(t => t.id === ticket.id)
+      if (!originalTicket) return
+      
+      // Déterminer si c'est un ticket multi-techniciens
+      const isMultiTech = originalTicket.technicians && originalTicket.technicians.length > 1
+      
+      let conflictResult
+      if (isMultiTech) {
+        conflictResult = checkMultiTechnicianConflicts(
+          originalTicket,
+          tickets,
+          dateString,
+          hour,
+          minutes
+        )
+      } else {
+        conflictResult = checkTicketConflicts(
+          originalTicket,
+          tickets,
+          dateString,
+          hour,
+          minutes,
+          technicianIdToAssign
+        )
+      }
+      
+      if (conflictResult.hasConflict) {
+        showError(conflictResult.message || 'Conflit d\'horaire détecté')
         return
       }
     }
@@ -183,6 +217,23 @@ export default function CalendarContainer({ onDragStart, onDragOver }: CalendarC
     if (availabilityStatus === 'partial') {
       const technicianName = technicians.find(t => t.id === technicianId)?.name || 'Ce technicien'
       if (!confirm(`${technicianName} a une disponibilité limitée à cette date. Voulez-vous continuer ?`)) {
+        return
+      }
+    }
+    
+    // Vérifier les conflits d'horaire avant d'ajouter le technicien
+    if (ticket.hour !== null && ticket.hour !== undefined && ticket.hour !== -1) {
+      const conflictResult = checkTicketConflicts(
+        ticket,
+        tickets,
+        ticket.date,
+        ticket.hour,
+        ticket.minutes || 0,
+        technicianId
+      )
+      
+      if (conflictResult.hasConflict) {
+        showError(conflictResult.message || 'Ce technicien a déjà un ticket sur ce créneau horaire')
         return
       }
     }

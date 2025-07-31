@@ -275,6 +275,145 @@ export function getTicketHeight(duration: number): number {
 }  
 
 /**
+ * Calcule l'heure de fin d'un ticket
+ */
+function calculateEndTime(hour: number, minutes: number, duration: number): string {
+  const totalMinutes = hour * 60 + minutes + duration;
+  const endHour = Math.floor(totalMinutes / 60);
+  const endMinutes = totalMinutes % 60;
+  return `${endHour}h${String(endMinutes).padStart(2, '0')}`;
+}
+
+/**
+ * Vérifie si deux plages horaires se chevauchent
+ */
+export function doTimeSlotsOverlap(
+  start1: { hour: number; minutes: number },
+  duration1: number,
+  start2: { hour: number; minutes: number },
+  duration2: number
+): boolean {
+  // Cas spécial : ticket toute la journée
+  if (start1.hour === -1 || start2.hour === -1) {
+    return true; // Toujours en conflit
+  }
+  
+  const end1Minutes = (start1.hour * 60 + start1.minutes) + duration1;
+  const end2Minutes = (start2.hour * 60 + start2.minutes) + duration2;
+  const start1Minutes = start1.hour * 60 + start1.minutes;
+  const start2Minutes = start2.hour * 60 + start2.minutes;
+  
+  return start1Minutes < end2Minutes && start2Minutes < end1Minutes;
+}
+
+/**
+ * Vérifie les conflits d'horaire pour un ticket avec un seul technicien
+ */
+export function checkTicketConflicts(
+  ticket: Ticket,
+  existingTickets: Ticket[],
+  newDate: string,
+  newHour: number,
+  newMinutes: number,
+  newTechnicianId?: number
+): { 
+  hasConflict: boolean; 
+  conflictingTickets: Ticket[]; 
+  message?: string 
+} {
+  // Utiliser la durée par défaut si non définie
+  const duration = ticket.estimated_duration || 30;
+  
+  // Filtrer les tickets de la même date et du même technicien
+  const techId = newTechnicianId || ticket.technician_id;
+  const relevantTickets = existingTickets.filter(t => 
+    t.date === newDate && 
+    t.id !== ticket.id &&
+    (t.technician_id === techId || 
+     t.technicians?.some(tech => tech.id === techId))
+  );
+  
+  const conflicts: Ticket[] = [];
+  
+  for (const existingTicket of relevantTickets) {
+    if (doTimeSlotsOverlap(
+      { hour: newHour, minutes: newMinutes },
+      duration,
+      { hour: existingTicket.hour || 0, minutes: existingTicket.minutes || 0 },
+      existingTicket.estimated_duration || 30
+    )) {
+      conflicts.push(existingTicket);
+    }
+  }
+  
+  if (conflicts.length > 0) {
+    const firstConflict = conflicts[0];
+    const endTime = calculateEndTime(firstConflict.hour || 0, firstConflict.minutes || 0, firstConflict.estimated_duration || 30);
+    const message = `Ce créneau est déjà occupé par le ticket "${firstConflict.title}" de ${firstConflict.hour}h${String(firstConflict.minutes || 0).padStart(2, '0')} à ${endTime}`;
+    return { hasConflict: true, conflictingTickets: conflicts, message };
+  }
+  
+  return { hasConflict: false, conflictingTickets: [] };
+}
+
+/**
+ * Vérifie les conflits d'horaire pour un ticket avec plusieurs techniciens
+ */
+export function checkMultiTechnicianConflicts(
+  ticket: Ticket,
+  existingTickets: Ticket[],
+  newDate: string,
+  newHour: number,
+  newMinutes: number
+): { 
+  hasConflict: boolean; 
+  conflictsByTechnician: Map<number, Ticket[]>; 
+  message?: string 
+} {
+  const conflictsByTech = new Map<number, Ticket[]>();
+  const allTechnicianIds = ticket.technicians?.map(t => t.id) || [];
+  
+  if (ticket.technician_id && !allTechnicianIds.includes(ticket.technician_id)) {
+    allTechnicianIds.push(ticket.technician_id);
+  }
+  
+  for (const techId of allTechnicianIds) {
+    const result = checkTicketConflicts(
+      ticket, 
+      existingTickets, 
+      newDate, 
+      newHour, 
+      newMinutes, 
+      techId
+    );
+    
+    if (result.hasConflict) {
+      conflictsByTech.set(techId, result.conflictingTickets);
+    }
+  }
+  
+  if (conflictsByTech.size > 0) {
+    const conflictDetails: string[] = [];
+    
+    conflictsByTech.forEach((conflicts, techId) => {
+      const techName = ticket.technicians?.find(t => t.id === techId)?.name || 
+                       (ticket.technician_id === techId ? ticket.technician_name : null) || 
+                       `Technicien ${techId}`;
+      const firstConflict = conflicts[0];
+      conflictDetails.push(`${techName} a déjà "${firstConflict.title}" à ${firstConflict.hour}h${String(firstConflict.minutes || 0).padStart(2, '0')}`);
+    });
+    
+    const message = conflictDetails.length === 1 
+      ? `Conflit d'horaire : ${conflictDetails[0]}`
+      : `Conflits d'horaire :\n${conflictDetails.join('\n')}`;
+      
+    return { hasConflict: true, conflictsByTechnician: conflictsByTech, message };
+  }
+  
+  return { hasConflict: false, conflictsByTechnician: conflictsByTech };
+}
+
+/**
  * Formate l'affichage d'une durée en minutes
  */
 export function formatDuration(minutes: number): string {

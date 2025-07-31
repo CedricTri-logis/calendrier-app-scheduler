@@ -140,18 +140,6 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
   const dateKey = getDateKey()
   const todayTickets = droppedTickets[dateKey] || []
   
-  // DEBUG: Log les tickets pour vérifier
-  useEffect(() => {
-    console.log('=== DEBUG ModernMultiTechView ===')
-    console.log('Date actuelle:', currentDate)
-    console.log('DateKey:', dateKey)
-    console.log('Tickets pour cette date:', todayTickets)
-    console.log('Nombre de tickets:', todayTickets.length)
-    if (todayTickets.length > 0) {
-      console.log('Premier ticket:', todayTickets[0])
-    }
-  }, [dateKey, todayTickets])
-  
   // Formater l'heure avec minutes
   const formatTime = (hour: number, minutes: number) => {
     return `${hour}:${minutes.toString().padStart(2, '0')}`
@@ -169,19 +157,6 @@ const ModernMultiTechView: React.FC<ModernMultiTechViewProps> = ({
       const duration = ticket.estimated_duration || 30
       const slots = getDurationSlots(duration)
       
-      // DEBUG: Log pour le ticket 12345
-      if (ticket.title && ticket.title.includes('12345')) {
-        console.log('DEBUG Ticket 12345:', {
-          title: ticket.title,
-          hour: ticket.hour,
-          minutes: ticket.minutes,
-          ticketSlot,
-          slotIndex,
-          isAssignedToTech,
-          technicianId,
-          ticket_technician_id: ticket.technician_id
-        })
-      }
       
       // Le ticket occupe ce créneau s'il commence avant ou à ce créneau
       // et se termine après ce créneau
