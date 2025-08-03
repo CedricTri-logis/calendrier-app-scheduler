@@ -1,0 +1,35 @@
+# .github/workflows/export-supabase.yml - Automatic Supabase export on push
+
+name: Export Supabase Schema and Data  # Name of the workflow
+
+on:  # Triggers when code is pushed to main branch
+  push:
+    branches:
+      - main  # Change to your branch if different
+
+jobs:  # Defines the jobs to run
+  export:  # Job name
+    runs-on: ubuntu-latest  # Runs on Ubuntu VM
+    steps:  # Steps in the job
+      - name: Checkout repo  # Step 1: Clone your repo
+        uses: actions/checkout@v4  # Uses GitHub's checkout action
+
+      - name: Install Supabase CLI  # Step 2: Install CLI
+        run: npm install -g supabase  # Installs Supabase CLI in the VM
+
+      - name: Export Schema  # Step 3: Export schema
+        run: supabase db dump --db-url postgresql://postgres:${{ secrets.SUPABASE_DB_PASSWORD }}@db.${{ secrets.SUPABASE_PROJECT_ID }}.supabase.co:5432/postgres --schema public > db_schema/schema.sql
+        # Exports schema to schema.sql; uses secrets for security
+
+      - name: Export Data Samples  # Step 4: Export sample data
+        run: supabase db dump --db-url postgresql://postgres:${{ secrets.SUPABASE_DB_PASSWORD }}@db.${{ secrets.SUPABASE_PROJECT_ID }}.supabase.co:5432/postgres --data-only --limit 50 > db_schema/data_samples.sql
+        # Exports 50 row samples; adjust limit if needed
+
+      - name: Commit and Push Updates  # Step 5: Commit changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add db_schema/
+          git commit -m "Auto-update Supabase schema and data samples" || echo "No changes"
+          git push
+        # Commits and pushes if changes exist

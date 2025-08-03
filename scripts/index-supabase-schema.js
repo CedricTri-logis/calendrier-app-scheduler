@@ -13,7 +13,11 @@ if (!supabaseUrl || !supabaseServiceKey) {
   process.exit(1);
 }
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  db: {
+    schema: 'calendar'
+  }
+});
 
 async function indexSupabaseSchema() {
   console.log('🔍 Indexing Supabase schema...\n');
@@ -39,7 +43,7 @@ async function indexSupabaseSchema() {
           obj_description(c.oid) as table_comment
         FROM information_schema.tables t
         JOIN pg_class c ON c.relname = t.table_name
-        WHERE t.table_schema = 'public'
+        WHERE t.table_schema = 'calendar'
         AND t.table_type = 'BASE TABLE'
         ORDER BY t.table_name;
       `
@@ -50,7 +54,7 @@ async function indexSupabaseSchema() {
       const { data: tables } = await supabase
         .from('information_schema.tables')
         .select('*')
-        .eq('table_schema', 'public')
+        .eq('table_schema', 'calendar')
         .eq('table_type', 'BASE TABLE');
       
       console.log(`Found ${tables?.length || 0} tables`);
@@ -103,7 +107,7 @@ async function indexSupabaseSchema() {
       JOIN pg_class i ON i.oid = ix.indexrelid
       JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(ix.indkey)
       WHERE t.relkind = 'r'
-      AND t.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
+      AND t.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'calendar')
       ORDER BY t.relname, i.relname;
     `;
 
@@ -124,7 +128,7 @@ async function indexSupabaseSchema() {
         ON ccu.constraint_name = tc.constraint_name
         AND ccu.table_schema = tc.table_schema
       WHERE tc.constraint_type = 'FOREIGN KEY'
-      AND tc.table_schema = 'public';
+      AND tc.table_schema = 'calendar';
     `;
 
     // 5. Get RLS policies
@@ -140,7 +144,7 @@ async function indexSupabaseSchema() {
         qual,
         with_check
       FROM pg_policies
-      WHERE schemaname = 'public'
+      WHERE schemaname = 'calendar'
       ORDER BY tablename, policyname;
     `;
 
@@ -156,7 +160,7 @@ async function indexSupabaseSchema() {
       FROM pg_proc p
       JOIN pg_namespace n ON p.pronamespace = n.oid
       JOIN pg_language l ON p.prolang = l.oid
-      WHERE n.nspname = 'public'
+      WHERE n.nspname = 'calendar'
       AND p.prokind = 'f'
       ORDER BY p.proname;
     `;
@@ -173,7 +177,7 @@ async function indexSupabaseSchema() {
         action_timing,
         created
       FROM information_schema.triggers
-      WHERE trigger_schema = 'public'
+      WHERE trigger_schema = 'calendar'
       ORDER BY event_object_table, trigger_name;
     `;
 

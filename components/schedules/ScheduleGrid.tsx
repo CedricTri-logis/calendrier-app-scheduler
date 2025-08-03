@@ -29,7 +29,9 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
     const map = new Map<string, Schedule[]>()
     
     schedules.forEach(schedule => {
-      const key = `${schedule.date}_${schedule.technician_id}`
+      // Extraire seulement la partie date (YYYY-MM-DD) de l'ISO string
+      const dateOnly = schedule.date.split('T')[0]
+      const key = `${dateOnly}_${schedule.technician_id}`
       if (!map.has(key)) {
         map.set(key, [])
       }
@@ -76,8 +78,13 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
     let totalMinutes = 0
     daySchedules.forEach(schedule => {
       if (schedule.type === 'available') {
-        const [startHour, startMin] = schedule.start_time.split(':').map(Number)
-        const [endHour, endMin] = schedule.end_time.split(':').map(Number)
+        // Gérer les formats HH:MM et HH:MM:SS
+        const startParts = schedule.start_time.split(':')
+        const endParts = schedule.end_time.split(':')
+        const startHour = Number(startParts[0])
+        const startMin = Number(startParts[1])
+        const endHour = Number(endParts[0])
+        const endMin = Number(endParts[1])
         const minutes = (endHour * 60 + endMin) - (startHour * 60 + startMin)
         totalMinutes += minutes
       }

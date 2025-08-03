@@ -47,14 +47,16 @@ export function useTechnicians() {
     phone?: string
   ) => {
     try {
+      const technicianData = {
+        name,
+        color,
+        email: email || null,
+        phone: phone || null
+      }
+      
       const { data, error: createError } = await supabase
         .from('technicians')
-        .insert([{
-          name,
-          color,
-          email: email || null,
-          phone: phone || null
-        }])
+        .insert([technicianData])
         .select()
         .single()
 
@@ -150,7 +152,7 @@ export function useTechnicians() {
       .on('postgres_changes', 
         { 
           event: '*', 
-          schema: 'public', 
+          schema: 'calendar', 
           table: 'technicians' 
         },
         (payload: any) => {

@@ -144,6 +144,7 @@ const ModernCalendar: React.FC<ModernCalendarProps> = ({
           const unavailabilityTypes = dateKey ? getUnavailabilityTypes(dateKey, schedules, selectedTechnicianId) : []
           const canDrop = isCurrentMonth && (availabilityStatus === 'available' || availabilityStatus === 'partial')
           
+          
           return (
             <div 
               key={index} 
@@ -155,8 +156,10 @@ const ModernCalendar: React.FC<ModernCalendarProps> = ({
                 ${isCurrentMonth && availabilityStatus === 'unavailable' ? styles.unavailable : ''}
                 ${isCurrentMonth && availabilityStatus === 'partial' ? styles.partial : ''}
               `}
-              onDrop={canDrop ? (e) => handleDrop(e, day) : undefined}
+              onDrop={canDrop ? (e: React.DragEvent) => handleDrop(e, day) : undefined}
               onDragOver={canDrop ? onDragOver : undefined}
+              data-can-drop={canDrop}
+              data-availability={availabilityStatus}
               onClick={isCurrentMonth && onDayClick ? () => {
                 const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
                 onDayClick(clickedDate)

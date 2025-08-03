@@ -1,10 +1,14 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Configuration
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://fmuxjttjlxvrkueaacvy.supabase.co'
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtdXhqdHRqbHh2cmt1ZWFhY3Z5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxNDY5MTQsImV4cCI6MjA2ODcyMjkxNH0.xXojJGgJNLpvuiyvbXTcALmbo0qyqExUroHo0tA2WPA'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mcencfcgqyquujiejimi.supabase.co'
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jZW5jZmNncXlxdXVqaWVqaW1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2MDA3OTcsImV4cCI6MjA2NzE3Njc5N30.0vMDpwsnwTo7i7Vcb83yfbW8T60bqYBCcEDgEnGyDG0'
 
-const supabase = createClient(supabaseUrl, supabaseKey)
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  db: {
+    schema: 'public'
+  }
+})
 
 async function setupDatabase() {
   console.log('Configuration de la base de données...')

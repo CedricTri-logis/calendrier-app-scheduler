@@ -14,7 +14,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       try {
         const { error } = await supabase
           .from('tickets')
-          .select('count(*)', { count: 'exact', head: true })
+          .select('*', { count: 'exact', head: true })
         
         if (error && error.code === '42P01') {
           console.error('⚠️ La table tickets n\'existe pas dans Supabase')

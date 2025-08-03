@@ -10,7 +10,11 @@ export function isHourAvailable(
   technicianId?: number | null
 ): boolean {
   // Filtrer les horaires pour la date donnée
-  let daySchedules = schedules.filter(schedule => schedule.date === date)
+  // Extraire seulement la partie date (YYYY-MM-DD) de l'ISO string si nécessaire
+  let daySchedules = schedules.filter(schedule => {
+    const scheduleDate = schedule.date.includes('T') ? schedule.date.split('T')[0] : schedule.date
+    return scheduleDate === date
+  })
   
   // Si un technicien est spécifié, filtrer par technicien
   if (technicianId !== null && technicianId !== undefined) {
@@ -60,7 +64,11 @@ export function getAvailableSlots(
   technicianId?: number | null
 ): Array<{ start: number; end: number }> {
   // Filtrer les horaires pour la date donnée
-  let daySchedules = schedules.filter(schedule => schedule.date === date)
+  // Extraire seulement la partie date (YYYY-MM-DD) de l'ISO string si nécessaire
+  let daySchedules = schedules.filter(schedule => {
+    const scheduleDate = schedule.date.includes('T') ? schedule.date.split('T')[0] : schedule.date
+    return scheduleDate === date
+  })
   
   // Si un technicien est spécifié, filtrer par technicien
   if (technicianId !== null && technicianId !== undefined) {
@@ -88,7 +96,11 @@ export function hasAvailability(
   technicianId?: number | null
 ): boolean {
   // Filtrer les horaires pour la date donnée
-  let daySchedules = schedules.filter(schedule => schedule.date === date)
+  // Extraire seulement la partie date (YYYY-MM-DD) de l'ISO string si nécessaire
+  let daySchedules = schedules.filter(schedule => {
+    const scheduleDate = schedule.date.includes('T') ? schedule.date.split('T')[0] : schedule.date
+    return scheduleDate === date
+  })
   
   // Si un technicien est spécifié, filtrer par technicien
   if (technicianId !== null && technicianId !== undefined) {
@@ -111,10 +123,11 @@ export function getAvailableDates(
   
   schedules.forEach(schedule => {
     // Vérifier si la date est dans la plage et que c'est une disponibilité
-    if (schedule.date >= startDate && schedule.date <= endDate && schedule.type === 'available') {
+    const scheduleDate = schedule.date.includes('T') ? schedule.date.split('T')[0] : schedule.date
+    if (scheduleDate >= startDate && scheduleDate <= endDate && schedule.type === 'available') {
       // Si un technicien est spécifié, vérifier que c'est le bon
       if (technicianId === null || technicianId === undefined || schedule.technician_id === technicianId) {
-        availableDates.add(schedule.date)
+        availableDates.add(scheduleDate)
       }
     }
   })
@@ -136,7 +149,11 @@ export function getDateAvailabilityStatus(
   technicianId?: number | null
 ): AvailabilityStatus {
   // Filtrer les horaires pour la date donnée
-  let daySchedules = schedules.filter(schedule => schedule.date === date)
+  // Extraire seulement la partie date (YYYY-MM-DD) de l'ISO string si nécessaire
+  let daySchedules = schedules.filter(schedule => {
+    const scheduleDate = schedule.date.includes('T') ? schedule.date.split('T')[0] : schedule.date
+    return scheduleDate === date
+  })
   
   // Si un technicien est spécifié, filtrer par technicien
   if (technicianId !== null && technicianId !== undefined) {
@@ -178,7 +195,11 @@ export function getUnavailabilityTypes(
   technicianId?: number | null
 ): ScheduleType[] {
   // Filtrer les horaires pour la date donnée
-  let daySchedules = schedules.filter(schedule => schedule.date === date)
+  // Extraire seulement la partie date (YYYY-MM-DD) de l'ISO string si nécessaire
+  let daySchedules = schedules.filter(schedule => {
+    const scheduleDate = schedule.date.includes('T') ? schedule.date.split('T')[0] : schedule.date
+    return scheduleDate === date
+  })
   
   // Si un technicien est spécifié, filtrer par technicien
   if (technicianId !== null && technicianId !== undefined) {

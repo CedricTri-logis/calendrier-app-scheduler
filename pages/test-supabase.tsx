@@ -12,7 +12,7 @@ export default function TestSupabase() {
         // Tester la connexion
         const { data, error } = await supabase
           .from('tickets')
-          .select('count(*)', { count: 'exact', head: true })
+          .select('*', { count: 'exact', head: true })
 
         if (error) {
           if (error.code === '42P01') {

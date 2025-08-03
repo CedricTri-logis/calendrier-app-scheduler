@@ -15,6 +15,9 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 // Créer le client admin pour exécuter les migrations
 const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  db: {
+    schema: 'calendar'
+  },
   auth: {
     autoRefreshToken: false,
     persistSession: false
@@ -29,7 +32,7 @@ async function runMigrations() {
     console.log('📋 Vérification de l\'état actuel de la base de données...');
     
     const { data: tables } = await supabase.rpc('get_tables_list', {
-      schema_name: 'public'
+      schema_name: 'calendar'
     }).single();
 
     // Si la fonction n'existe pas, essayer une requête directe
@@ -117,7 +120,8 @@ async function runMigrations() {
 
     console.log('\n' + '='.repeat(60));
     console.log('📝 IMPORTANT : Les migrations SQL doivent être exécutées manuellement');
-    console.log('1. Allez sur : ' + supabaseUrl + '/sql');
+    const projectId = supabaseUrl.split('//')[1].split('.')[0];
+    console.log('1. Allez sur : https://supabase.com/dashboard/project/' + projectId + '/sql');
     console.log('2. Copiez et exécutez chaque script dans l\'ordre');
     console.log('3. Vérifiez qu\'il n\'y a pas d\'erreurs');
     console.log('='.repeat(60) + '\n');
@@ -133,7 +137,7 @@ async function showInstructions() {
 🎯 Instructions pour exécuter les migrations :
 
 1. Ouvrez votre navigateur et allez à :
-   ${supabaseUrl}/sql
+   https://supabase.com/dashboard/project/${supabaseUrl.split('//')[1].split('.')[0]}/sql
 
 2. Connectez-vous à votre dashboard Supabase
 

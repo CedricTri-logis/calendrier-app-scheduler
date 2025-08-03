@@ -121,9 +121,18 @@ export function useTickets() {
         technician_id = nonAssigneTech?.id || null
       }
 
+      const ticketData = { 
+        title, 
+        color, 
+        technician_id,
+        date: null, // Un ticket nouvellement créé ne doit pas avoir de date
+        hour: -1,   // -1 signifie "toute la journée" ou non planifié
+        minutes: 0
+      }
+      
       const { data, error } = await supabase
         .from('tickets')
-        .insert([{ title, color, technician_id }])
+        .insert([ticketData])
         .select()
         .single()
 
@@ -247,10 +256,9 @@ export function useTickets() {
               ...ticket,
               date: null,
               hour: null,
-              technician_id: null,
-              technician_name: null,
-              technician_color: null,
-              technicians: []
+              minutes: 0
+              // On garde le technician_id et les infos technicien
+              // car certaines contraintes DB peuvent l'exiger
             }
           }
           return ticket
@@ -263,7 +271,8 @@ export function useTickets() {
         .update({ 
           date: null, 
           hour: -1,
-          technician_id: null
+          minutes: 0
+          // Ne pas mettre technician_id à null car cela peut violer des contraintes
         })
         .eq('id', id)
 
@@ -316,7 +325,7 @@ export function useTickets() {
     const subscription = supabase
       .channel('tickets-changes')
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'tickets' }, 
+        { event: '*', schema: 'calendar', table: 'tickets' }, 
         (payload: any) => {
           console.log('Changement détecté:', payload)
           

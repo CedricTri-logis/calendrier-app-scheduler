@@ -92,9 +92,13 @@ export function useSchedules(filters?: ScheduleFilters) {
   // Créer un nouvel horaire
   const createSchedule = async (input: CreateScheduleInput) => {
     try {
+      const scheduleData = {
+        ...input
+      }
+      
       const { data, error: createError } = await supabase
         .from('schedules')
-        .insert([input])
+        .insert([scheduleData])
         .select(`
           *,
           technician:technicians!technician_id (
@@ -127,9 +131,11 @@ export function useSchedules(filters?: ScheduleFilters) {
   // Créer plusieurs horaires en une fois (utile pour les horaires récurrents)
   const createMultipleSchedules = async (schedules: CreateScheduleInput[]) => {
     try {
+      const schedulesData = schedules
+      
       const { data, error: createError } = await supabase
         .from('schedules')
-        .insert(schedules)
+        .insert(schedulesData)
         .select(`
           *,
           technician:technicians!technician_id (
@@ -304,7 +310,7 @@ export function useSchedules(filters?: ScheduleFilters) {
       .on('postgres_changes', 
         { 
           event: '*', 
-          schema: 'public', 
+          schema: 'calendar', 
           table: 'schedules' 
         },
         (payload: any) => {

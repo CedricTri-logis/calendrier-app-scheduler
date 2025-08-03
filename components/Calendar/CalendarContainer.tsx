@@ -43,10 +43,12 @@ export default function CalendarContainer({ onDragStart, onDragOver }: CalendarC
   // Organiser les tickets placés par date
   const ticketsByDate = filteredTicketsForCalendar.reduce((acc, ticket) => {
     if (ticket.date) {
-      if (!acc[ticket.date]) {
-        acc[ticket.date] = []
+      // Extraire seulement la partie date (YYYY-MM-DD) de l'ISO string
+      const dateKey = ticket.date.split('T')[0]
+      if (!acc[dateKey]) {
+        acc[dateKey] = []
       }
-      acc[ticket.date].push(ticket)
+      acc[dateKey].push(ticket)
     }
     return acc
   }, {} as { [key: string]: typeof tickets })

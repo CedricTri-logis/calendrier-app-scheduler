@@ -3,9 +3,19 @@
 # Script pour créer la table via l'API Supabase
 # Nécessite la clé service_role (pas la clé anon)
 
-SUPABASE_URL="https://fmuxjttjlxvrkueaacvy.supabase.co"
-# Remplacez par votre clé service_role (trouvable dans Settings > API)
-SERVICE_ROLE_KEY="your-service-role-key"
+# Variables d'environnement requises
+if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ]; then
+  echo "❌ NEXT_PUBLIC_SUPABASE_URL non définie"
+  exit 1
+fi
+
+if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+  echo "❌ SUPABASE_SERVICE_ROLE_KEY non définie"
+  exit 1
+fi
+
+SUPABASE_URL="$NEXT_PUBLIC_SUPABASE_URL"
+SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY"
 
 # Le SQL à exécuter
 SQL_QUERY="CREATE TABLE IF NOT EXISTS tickets (

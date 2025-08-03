@@ -18,7 +18,17 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 // Si les variables ne sont pas configurées, créer un client factice
 export const supabase = supabaseUrl && supabaseAnonKey 
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      db: {
+        schema: 'calendar'
+      },
+      global: {
+        headers: {
+          'Accept-Profile': 'calendar',
+          'Content-Profile': 'calendar'
+        }
+      }
+    })
   : null as any
 
 // Indicateur pour savoir si Supabase est configuré

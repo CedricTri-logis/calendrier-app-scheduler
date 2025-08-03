@@ -22,6 +22,7 @@ export default function DatabaseStatus() {
       const headers = {
         'apikey': anonKey,
         'Authorization': `Bearer ${anonKey}`,
+        'Accept-Profile': 'calendar'
       }
 
       // Vérifier chaque table/vue

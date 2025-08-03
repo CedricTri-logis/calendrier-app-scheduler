@@ -99,6 +99,7 @@ LEFT JOIN technicians tech ON t.technician_id = tech.id;
         'apikey': SUPABASE_SERVICE_KEY,
         'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
         'Content-Type': 'application/json',
+        'Accept-Profile': 'calendar'
       },
       body: JSON.stringify({
         query: fullSql
@@ -118,6 +119,7 @@ LEFT JOIN technicians tech ON t.technician_id = tech.id;
         headers: {
           'apikey': SUPABASE_SERVICE_KEY,
           'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+          'Accept-Profile': 'public'
         }
       })
       
@@ -138,6 +140,7 @@ LEFT JOIN technicians tech ON t.technician_id = tech.id;
         headers: {
           'apikey': SUPABASE_SERVICE_KEY,
           'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+          'Accept-Profile': 'public'
         }
       })
       
@@ -158,6 +161,7 @@ LEFT JOIN technicians tech ON t.technician_id = tech.id;
         headers: {
           'apikey': SUPABASE_SERVICE_KEY,
           'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+          'Accept-Profile': 'public'
         }
       })
       
@@ -183,7 +187,7 @@ LEFT JOIN technicians tech ON t.technician_id = tech.id;
         sqlToExecute: fullSql,
         instructions: [
           '1. Copiez le SQL ci-dessus',
-          '2. Allez sur https://supabase.com/dashboard/project/fmuxjttjlxvrkueaacvy/sql',
+          `2. Allez sur https://supabase.com/dashboard/project/${SUPABASE_URL.split('//')[1].split('.')[0]}/sql`,
           '3. Collez et exécutez le SQL',
           '4. Rafraîchissez cette page'
         ]

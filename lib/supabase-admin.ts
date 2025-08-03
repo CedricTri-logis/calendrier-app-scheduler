@@ -11,6 +11,15 @@ export function getSupabaseAdmin() {
   }
 
   return createClient(supabaseUrl, supabaseServiceKey, {
+    db: {
+      schema: 'calendar'
+    },
+    global: {
+      headers: {
+        'Accept-Profile': 'calendar',
+        'Content-Profile': 'calendar'
+      }
+    },
     auth: {
       autoRefreshToken: false,
       persistSession: false
